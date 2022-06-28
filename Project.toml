@@ -1,0 +1,29 @@
+name = "MaxStableVI"
+uuid = "2292c43b-157e-4784-aa5b-c99f0b7e59b5"
+authors = ["Patrik Andersson <patrik@ndersson.nu> and contributors"]
+version = "0.1.0"
+
+[deps]
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+FLoops = "cc61a311-1640-44b5-9fba-1b764f453329"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+InvertedIndices = "41ab1584-1d38-5bbf-9106-f11c6c58b48f"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+QuasiMonteCarlo = "8a4e6c94-4038-4cdc-81c3-7e6ffdb2a71b"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
