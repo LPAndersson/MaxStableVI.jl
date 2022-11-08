@@ -4,25 +4,31 @@ using Flux
 #Generate test data
 coordinates = rand(10,2) #Not used for logistic model
 observations = sample(
-    BrownResnickModel(0.5, 0.5), 
+    BrownResnickModel(lambda = 0.5, nu = 0.5), 
     coordinates = coordinates, 
     n = 10
     )
 data = [observations, coordinates]
 
-guide = RestaurantProcess(0.5, 0.5, 0.5)
+resturantGuide = RestaurantProcess(delta = 0.5, 
+                                   alpha = 0.5, 
+                                   rho = 0.5
+                                   )
 
 guideOptimiser = Flux.Descent(1e-5)
 modelOptimiser = Flux.Momentum(1e-5,0.9)
 
-model = BrownResnickModel(0.7,0.7)
+model = BrownResnickModel(lambda = 0.7, nu = 0.7)
 
-fit = train!(model, guide, data; 
-            epochs = 1000, 
-            numSamplesIn = 4,
+fit = train!(model,
+            resturantGuide;
+            data = data,
+            epochs = 10, 
+            M = 8,
             guideopt = guideOptimiser,
-            modelopt = modelOptimiser
-            )
+            modelopt = modelOptimiser,
+            printing = true
+            );
 
 model_mle = LogisticModel(0.8)
 
