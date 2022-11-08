@@ -9,7 +9,7 @@ mutable struct RestaurantProcess <: AbstractGuide
     rho::Vector{Float64}
 end
 
-RestaurantProcess(x::Float64,y::Float64,z::Float64) = RestaurantProcess([x],[y],[z])
+RestaurantProcess(; delta::Float64, alpha::Float64, rho::Float64) = RestaurantProcess([delta],[alpha],[rho])
 
 @functor RestaurantProcess
 

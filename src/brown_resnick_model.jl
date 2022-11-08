@@ -13,7 +13,7 @@ mutable struct BrownResnickModel <: AbstractMaxStableModel
     nu::Vector{Float64}
 end
 
-BrownResnickModel(x::Float64, y::Float64) = BrownResnickModel([x],[y])
+BrownResnickModel(; lambda::Float64, nu::Float64) = BrownResnickModel([lambda],[nu])
 
 @functor BrownResnickModel
 

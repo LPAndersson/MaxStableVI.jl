@@ -8,7 +8,7 @@ mutable struct LogisticModel <: AbstractMaxStableModel
     theta::Vector{Float64}
 end
 
-LogisticModel(x::Float64) = LogisticModel([x])
+LogisticModel(; theta::Float64) = LogisticModel([theta])
 
 @functor LogisticModel
 
