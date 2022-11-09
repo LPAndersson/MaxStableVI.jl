@@ -89,7 +89,6 @@ function mle!(model::LogisticModel, data::Vector{Matrix{Float64}})
     model.theta = logistic.(optimal.minimizer)
 end
 
-
 function Qfcn(P, alpha)
     Q = [1]
     for p in 2:P
