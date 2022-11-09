@@ -75,7 +75,7 @@ function logLikelihood( #Shi
     return logl
 end
 
-function mle!(model::LogisticModel, data::Vector{Matrix{Float64}})
+function mle!(model::LogisticModel; data::Vector{Matrix{Float64}})
 
     modelCopy = deepcopy(model)
 
