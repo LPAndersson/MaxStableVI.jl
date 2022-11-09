@@ -33,9 +33,15 @@ model = BrownResnickModel(lambda = 0.7, nu = 0.7)
 fit = train!(model,
             resturantGuide;
             data = data,
-            epochs = 10, 
+            epochs = 100, 
             M = 8,
             guideopt = guideOptimiser,
             modelopt = modelOptimiser
             );
+```
+
+For the logistic model maximum likelihood estimation is also available
+```julia
+model_mle = LogisticModel(theta = 0.8)
+mle!(model_mle, data = data)
 ```
