@@ -52,7 +52,7 @@ end
 
 function logLikelihood( #Shi: MULTIVARIATE EXTREME VALUE DISTRIBUTION AND ITS FISHER INFORMATION MATRIX
     model::LogisticModel,
-    data::Vector{Matrix{Float64}},
+    data::Vector{Matrix{Float64}}
     ) 
 
     observations = data[1]
@@ -79,14 +79,14 @@ function mle!(model::LogisticModel; data::Vector{Matrix{Float64}})
 
     modelCopy = deepcopy(model)
 
-    loss2 = function(x::Vector{Float64})
-        modelCopy.theta = logistic.(x)
+    loss = function(x::Float64)
+        modelCopy.theta = [x]
         return -logLikelihood(modelCopy, data)
     end
 
-    optimal = Optim.optimize(loss, [0.0] , Optim.NelderMead())
+    optimal = Optim.optimize(loss, 0.0, 1.0 )
 
-    model.theta = logistic.(optimal.minimizer)
+    model.theta = [optimal.minimizer]
 
     model
 end
