@@ -87,6 +87,8 @@ function mle!(model::LogisticModel; data::Vector{Matrix{Float64}})
     optimal = Optim.optimize(loss, [0.0] , Optim.NelderMead())
 
     model.theta = logistic.(optimal.minimizer)
+
+    model
 end
 
 function Qfcn(P::Integer, alpha::Float64)
