@@ -50,7 +50,7 @@ function condLogLikelihood(
     return tauRes - xSum^theta
 end
 
-function logLikelihood( #Shi 
+function logLikelihood( #Shi: MULTIVARIATE EXTREME VALUE DISTRIBUTION AND ITS FISHER INFORMATION MATRIX
     model::LogisticModel,
     data::Vector{Matrix{Float64}},
     ) 
@@ -79,17 +79,17 @@ function mle!(model::LogisticModel; data::Vector{Matrix{Float64}})
 
     modelCopy = deepcopy(model)
 
-    function loss(x)
+    loss2 = function(x::Vector{Float64})
         modelCopy.theta = logistic.(x)
         return -logLikelihood(modelCopy, data)
     end
 
-    optimal = Optim.optimize(loss, [0.0] , Optim.LBFGS())
+    optimal = Optim.optimize(loss, [0.0] , Optim.NelderMead())
 
     model.theta = logistic.(optimal.minimizer)
 end
 
-function Qfcn(P, alpha)
+function Qfcn(P::Integer, alpha::Float64)
     Q = [1]
     for p in 2:P
         q1 = [((p - 1) / alpha - 1.) * Q; 0.]
