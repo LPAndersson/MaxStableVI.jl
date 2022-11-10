@@ -17,7 +17,7 @@ observations = sample(
 data = [observations, coordinates]
 
 # initiate a restaurant process as guide
-resturantGuide = RestaurantProcess(delta = 0.5, 
+restaurantGuide = RestaurantProcess(delta = 0.5, 
                                    alpha = 0.5, 
                                    rho = 0.5
                                    )
@@ -30,25 +30,62 @@ modelOptimiser = Flux.Momentum(1e-5,0.9)
 model = BrownResnickModel(lambda = 0.7, nu = 0.7)
 
 # train the model
-fit = train!(model,
-            resturantGuide;
-            data = data,
-            epochs = 100, 
-            M = 8,
-            guideopt = guideOptimiser,
-            modelopt = modelOptimiser
-            );
+fit = train!(
+    model,
+    restaurantGuide,
+    data = data,
+    epochs = 10, 
+    M = 8,
+    guideopt = guideOptimiser,
+    modelopt = modelOptimiser
+    );
 ```
-
-For the logistic model maximum likelihood estimation is also available
+The elbo can be estimated using Monte Carlo
 ```julia
-observations_logistic = sample(
-    LogisticModel(theta = 0.5), 
+logl = elboMC(
+    model, 
+    restaurantGuide, 
+    data = data,
+    numOfSamples = 100,
+    M = 4
+    )
+```
+We can also estimate the loglikehood by importance sampling the partitions from the guide distribution
+```julia
+logl = logLikelihoodIS(
+    model, 
+    restaurantGuide, 
+    data = data, 
+    numOfSamples = 100
+    )
+```
+For the logistic model the likelihood can be calculated exactly
+```julia
+observations = sample(
+    LogisticModel(theta = 0.7), 
     coordinates = coordinates,
-    n = 1000
+    n = 100
     )
 data = [observations, coordinates]
 
-model_mle = LogisticModel(theta = 0.5)
-mle!(model_mle, data = data)
+logl = logLikelihood(LogisticModel(theta = 0.5), data)
+```
+For convenience there is a function to calculate the maximum likelihood estimate
+```julia
+model = LogisticModel(theta = 0.5)
+mle!(model, data = data)
+```
+If the dimension is low, the likelihood can also be calculated by enumerating the partitions
+```julia
+coordinates = rand(5,2)
+observations = sample(
+    BrownResnickModel(lambda = 0.5, nu = 0.5), 
+    coordinates = coordinates, 
+    n = 10
+    )
+data = [observations, coordinates]
+logl = loglikelihoodEnumerate(
+    BrownResnickModel(lambda = 0.5, nu = 0.5), 
+    data
+    )
 ```
