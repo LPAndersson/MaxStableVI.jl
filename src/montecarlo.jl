@@ -23,10 +23,10 @@ function elboMC(
         guideSample::Vector{Vector{Int64}} = [[]]
         logSum = 0.0
 
-        pq = Vector{Float64}(undef, numSamplesIn)
+        pq = Vector{Float64}(undef, M)
         
         for countObservation in 1:n
-            for m in 1:numSamplesIn
+            for m in 1:M
                 guideLogL = 
                     sample(
                         rng,
@@ -39,7 +39,7 @@ function elboMC(
                 modelLogL = condLogLikelihood(model, observations[countObservation,:], coordinates, guideSample)
                 pq[m] = modelLogL - guideLogL
             end
-            logSum += logsumexp(pq) - log(numSamplesIn)
+            logSum += logsumexp(pq) - log(M)
         end
 
         @reduce(elbo += logSum)
@@ -66,8 +66,8 @@ elboMC(
 function logLikelihoodIS(
     rng::Random.AbstractRNG,
     model::AbstractMaxStableModel, 
-    guide::AbstractGuide, 
-    data::Vector{Matrix{Float64}}; 
+    guide::AbstractGuide;
+    data::Vector{Matrix{Float64}},
     numOfSamples::Int64)
 
     observations = data[1]
@@ -91,14 +91,14 @@ function logLikelihoodIS(
 end
 logLikelihoodIS(
     model::AbstractMaxStableModel, 
-    guide::AbstractGuide, 
-    data::Vector{Matrix{Float64}}; 
+    guide::AbstractGuide;
+    data::Vector{Matrix{Float64}},
     numOfSamples::Int64
     ) = logLikelihoodIS(
         Random.default_rng(),
         model, 
         guide, 
-        data; 
+        data = data,
         numOfSamples = numOfSamples
         )
         
