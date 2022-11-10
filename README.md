@@ -8,7 +8,7 @@ using MaxStableVI
 using Flux
 
 # generate some test data
-coordinates = rand(10,2) # not used for logistic model
+coordinates = rand(10,2)
 observations = sample(
     BrownResnickModel(lambda = 0.5, nu = 0.5), 
     coordinates = coordinates, 
@@ -42,6 +42,13 @@ fit = train!(model,
 
 For the logistic model maximum likelihood estimation is also available
 ```julia
-model_mle = LogisticModel(theta = 0.8)
+observations_logistic = sample(
+    LogisticModel(theta = 0.5), 
+    coordinates = coordinates,
+    n = 1000
+    )
+data = [observations, coordinates]
+
+model_mle = LogisticModel(theta = 0.5)
 mle!(model_mle, data = data)
 ```
