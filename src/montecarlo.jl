@@ -7,10 +7,10 @@ using FLoops
 function elboMC(
     rng::Random.AbstractRNG,
     model::AbstractMaxStableModel, 
-    guide::AbstractGuide, 
+    guide::AbstractGuide;
     data::Vector{Matrix{Float64}},
-    numOfSamples::Int64;
-    numSamplesIn::Int64 = 1)
+    numOfSamples::Int64,
+    M::Int64 = 1)
 
     observations = data[1]
     coordinates = data[2]
@@ -48,20 +48,19 @@ function elboMC(
     return elbo/numOfSamples
 
 end
-
-
 elboMC(
     model::AbstractMaxStableModel, 
-    guide::AbstractGuide, 
+    guide::AbstractGuide;
     data::Vector{Matrix{Float64}},
-    numOfSamples::Int64;
-    numSamplesIn::Int64 = 1
+    numOfSamples::Int64,
+    M::Int64 = 1
     ) = elboMC(
         Random.default_rng(), 
-        model, guide, 
-        data, 
-        numOfSamples; 
-        numSamplesIn = numSamplesIn
+        model, 
+        guide, 
+        data = data, 
+        numOfSamples = numOfSamples,
+        M = M
         )
 
 function logLikelihoodIS(
