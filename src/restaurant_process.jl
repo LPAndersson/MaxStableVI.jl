@@ -61,9 +61,9 @@ function sample(
 
     fisher_yates_sample!(rng, 1:d, reorder) #Sample without replacement
 
-    logLikelihood = 0
+    logLikelihood = 0.0
 
-    Sigma = corrMatrixFun(rho, observation) # computing correlation matrix based on distances and the permuted indices
+    Sigma = corrMatrixFun(rho, observation) # computing correlation matrix based on distances
     
     Zygote.@ignore push!(partition_local, [reorder[1]]) #put first customer at empty table
 

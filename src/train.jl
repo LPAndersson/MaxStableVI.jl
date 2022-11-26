@@ -24,8 +24,8 @@ function train!(rng::Random.AbstractRNG,
 
     #traceStep  = 10
 
-    movingAvgLength = 50
-    movingAvg = zeros(Float64,movingAvgLength)
+    #movingAvgLength = 50
+    #movingAvg = zeros(Float64,movingAvgLength)
 
     #modelParamHist = Vector{Zygote.Params}(undef,0)
     #guideParamHist = Vector{Zygote.Params}(undef,0)
@@ -87,13 +87,13 @@ function train!(rng::Random.AbstractRNG,
     
             guideGradSum = reduce(.+, guideGrads)
 
-            c = elboEstimate
+            #c = elboEstimate
         
             log_pqsum = logsumexp(modelValues .- guideValues)
                 
             modelStep =  exp(-log_pqsum) .* reduce(.+, pqgradLogp)
-            guideStep = -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ (log_pqsum-c) .* guideGradSum
-        
+            guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ log_pqsum .* guideGradSum
+
             Flux.update!(modelopt, modelParams, (-1).* modelStep)
             Flux.update!(guideopt, guideParams, (-1).* guideStep)   
             
