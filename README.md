@@ -10,7 +10,8 @@ using Flux
 # generate some test data
 coordinates = rand(10,2)
 observations = sample(
-    BrownResnickModel(lambda = 0.5, nu = 0.5), 
+    #BrownResnickModel(lambda = 0.5, nu = 0.5), 
+    LogisticModel(theta = 0.9),
     coordinates = coordinates, 
     n = 10
     )
@@ -23,18 +24,19 @@ restaurantGuide = RestaurantProcess(delta = 0.5,
                                    )
 
 # initiate the optimizers
-guideOptimiser = Flux.Descent(1e-5)
+guideOptimiser = Flux.Descent(1e-6)
 modelOptimiser = Flux.Momentum(1e-5,0.9)
 
 # initiate the model to be trained with starting values
-model = BrownResnickModel(lambda = 0.7, nu = 0.7)
+#model = BrownResnickModel(lambda = 0.7, nu = 0.7)
+model = LogisticModel(theta = 0.7)
 
 # train the model
 fit = train!(
     model,
     restaurantGuide,
     data = data,
-    epochs = 10, 
+    epochs = 1000, 
     M = 8,
     guideopt = guideOptimiser,
     modelopt = modelOptimiser
