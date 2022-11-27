@@ -21,15 +21,7 @@ function train!(rng::Random.AbstractRNG,
     coordinates = data[2]
 
     (n, d) = size(observations)
-
-    #traceStep  = 10
-
-    #movingAvgLength = 50
-    #movingAvg = zeros(Float64,movingAvgLength)
-
-    #modelParamHist = Vector{Zygote.Params}(undef,0)
-    #guideParamHist = Vector{Zygote.Params}(undef,0)
-    
+        
     modelParamHist = Vector{Vector{Float64}}(undef,0)
     guideParamHist = Vector{Vector{Float64}}(undef,0)
     
@@ -48,6 +40,8 @@ function train!(rng::Random.AbstractRNG,
         
     guideParams = Flux.params(guide)
     modelParams = Flux.params(model)
+
+    c = 0
 
     batchOrder = StatsBase.sample(rng, 1:n, n, replace = false)
   
@@ -86,27 +80,24 @@ function train!(rng::Random.AbstractRNG,
             end
     
             guideGradSum = reduce(.+, guideGrads)
-
-            #c = elboEstimate
         
             log_pqsum = logsumexp(modelValues .- guideValues)
                 
             modelStep =  exp(-log_pqsum) .* reduce(.+, pqgradLogp)
-            guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ log_pqsum .* guideGradSum
+            guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ (log_pqsum - c) .* guideGradSum
 
             Flux.update!(modelopt, modelParams, (-1).* modelStep)
             Flux.update!(guideopt, guideParams, (-1).* guideStep)   
             
             clamp!(model)
-            clamp!(guide)    
+            clamp!(guide)
         
-            elboEstimate += logsumexp(modelValues .- guideValues) - log(M)
+            elboEstimate += log_pqsum - log(M)
+
+            c = 0.99 * c + (1-0.99) * log_pqsum
 
         end
 
-        c = 0.0#elboEstimate
-
-        #push!(modelParamHist, deepcopy(modelParams))
         push!(modelParamHist, getindex.(modelParams[:],1))
         push!(guideParamHist, getindex.(guideParams[:],1))
         push!(elboHist, elboEstimate)
