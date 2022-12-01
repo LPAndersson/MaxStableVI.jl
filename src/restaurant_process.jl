@@ -18,7 +18,7 @@ function clamp!(guide::RestaurantProcess)
     guide.delta[1] = clamp(guide.delta[1], 0.0, 0.99 )
 
     guide.alpha[1] = clamp(guide.alpha[1], -guide.delta[1]+0.01, Inf )
-    guide.rho[1] = clamp(guide.rho[1], 0.01, Inf )
+    guide.rho[1] = clamp(guide.rho[1], 0.0, Inf )
 
     return Nothing
 
@@ -32,7 +32,7 @@ function corrMatrixFun(rho::Float64, observation::Vector{Float64})
     for i in 1:d
         for j in (i+1):d
             distance = abs(observation[i] - observation[j]) # compute distances
-            corr = exp(- distance / rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity  
+            corr = exp(- distance * rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity  
             Sigma[i, j] = corr
             Sigma[j, i] = corr
         end
