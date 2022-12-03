@@ -264,7 +264,9 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
         Optim.Options(x_tol = 1e-2)
         )
 
-    modelCopy.lambda = [exp(optimal.minimizer[1])]
-    modelCopy.nu = [2* logistic(optimal.minimizer[1])]
+    model.lambda = [exp(optimal.minimizer[1])]
+    model.nu = [2* logistic(optimal.minimizer[1])]
+
+    model
 
 end
