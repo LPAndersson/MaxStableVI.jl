@@ -247,7 +247,7 @@ covMatrix = function(model::BrownResnickModel, coordinates::Matrix{Float64})
 
 end
 
-function mle!(model::BrownResnickModel, data::Vector{Matrix{Float64}})
+function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
 
     modelCopy = deepcopy(model)
 
