@@ -247,7 +247,7 @@ covMatrix = function(model::BrownResnickModel, coordinates::Matrix{Float64})
 
 end
 
-function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
+function mle2!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
 
     modelCopy = deepcopy(model)
 
@@ -260,12 +260,11 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     optimal = Optim.optimize(
         loss, 
         [0.0,0.0] , 
-        Optim.LBFGS(),
-        Optim.Options(x_tol = 1e-2)
+        Optim.LBFGS()
         )
 
     model.lambda = [exp(optimal.minimizer[1])]
-    model.nu = [2* logistic(optimal.minimizer[1])]
+    model.nu = [2* logistic(optimal.minimizer[2])]
 
     model
 
