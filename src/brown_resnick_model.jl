@@ -1,8 +1,10 @@
 import Random
 import LinearAlgebra
+import Optim
 
 import Distributions: MvNormal
-import StatsFuns: normcdf
+import StatsFuns: normcdf, logistic
+
 import InvertedIndices: Not
 import Flux: @functor
 
@@ -242,5 +244,27 @@ covMatrix = function(model::BrownResnickModel, coordinates::Matrix{Float64})
     end
   
     return covarMat
+
+end
+
+function mle!(model::BrownResnickModel, data::Vector{Matrix{Float64}})
+
+    modelCopy = deepcopy(model)
+
+    function loss(x)
+        modelCopy.lambda = [exp(x[1])]
+        modelCopy.nu = [2* logistic(x[2])]
+        return -loglikelihoodEnumerate(modelCopy, data)
+    end
+
+    optimal = Optim.optimize(
+        loss, 
+        [0.0,0.0] , 
+        Optim.LBFGS(),
+        Optim.Options(x_tol = 1e-2)
+        )
+
+    modelCopy.lambda = [exp(optimal.minimizer[1])]
+    modelCopy.nu = [2* logistic(optimal.minimizer[1])]
 
 end
