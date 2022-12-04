@@ -260,7 +260,7 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     optimal = Optim.optimize(
         loss, 
         [0.0,0.0] , 
-        Optim.LBFGS()
+        Optim.NelderMead()
         )
 
     model.lambda = [exp(optimal.minimizer[1])]
