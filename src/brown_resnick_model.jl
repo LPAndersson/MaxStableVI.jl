@@ -21,7 +21,7 @@ BrownResnickModel(; lambda::Float64, nu::Float64) = BrownResnickModel([lambda],[
 
 function clamp!(model::BrownResnickModel)
   model.lambda[1] = clamp(model.lambda[1],0.01, Inf )
-  model.nu[1] = clamp(model.nu[1], 0.01, 1.99)
+  model.nu[1] = clamp(model.nu[1], 0.01, 2.0)
   return Nothing
 end
 

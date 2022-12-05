@@ -1,4 +1,4 @@
-This is the [Julia](https://julialang.org/downloads/) code accompanying the paper ???
+This is the [Julia](https://julialang.org/downloads/) code accompanying the paper [Variational inference for max-stable processes](https://arxiv.org)
 
 Here's a simple example to try it out:
 ```julia
@@ -18,14 +18,14 @@ observations = sample(
 data = [observations, coordinates]
 
 # initiate a restaurant process as guide
-restaurantGuide = RestaurantProcess(delta = 0.5, 
-                                   alpha = 0.5, 
-                                   rho = 0.5
+guide = RestaurantProcess(delta = 0.8, 
+                                   alpha = 1.0, 
+                                   rho = 0.01
                                    )
 
 # initiate the optimizers
-guideOptimiser = Flux.Descent(1e-6)
-modelOptimiser = Flux.Momentum(1e-5,0.9)
+guideOptimiser = Flux.AdaDelta()
+modelOptimiser = Flux.AdaDelta()
 
 # initiate the model to be trained with starting values
 #model = BrownResnickModel(lambda = 0.7, nu = 0.7)
@@ -34,10 +34,10 @@ model = LogisticModel(theta = 0.7)
 # train the model
 fit = train!(
     model,
-    restaurantGuide,
+    guide,
     data = data,
-    epochs = 1000, 
-    M = 8,
+    epochs = 5000, 
+    M = 16,
     guideopt = guideOptimiser,
     modelopt = modelOptimiser
     );
@@ -46,17 +46,17 @@ The elbo can be estimated using Monte Carlo
 ```julia
 logl = elboMC(
     model, 
-    restaurantGuide, 
+    guide, 
     data = data,
     numOfSamples = 100,
-    M = 4
+    M = 16
     )
 ```
 We can also estimate the loglikehood by importance sampling the partitions from the guide distribution
 ```julia
 logl = logLikelihoodIS(
     model, 
-    restaurantGuide, 
+    guide, 
     data = data, 
     numOfSamples = 100
     )

@@ -13,7 +13,7 @@ LogisticModel(; theta::Float64) = LogisticModel([theta])
 @functor LogisticModel
 
 function clamp!(model::LogisticModel)
-    model.theta[1] = clamp(model.theta[1],0.01, 0.99)
+    model.theta[1] = clamp(model.theta[1],0.01, 1.0)
     return Nothing
 end
 
@@ -36,7 +36,6 @@ function condLogLikelihood(
       xTau = observation[partition[j]]
       tauLength = length(xTau)
       if tauLength == 1
-        #Here is a hack to turn xTau in to scalar.
         tauRes = tauRes + ( -1 / theta - 1) * log(reshape(xTau, 1)[1]) + (theta - tauLength) * log(xSum)
       else
         r = collect(1:(tauLength-1))
