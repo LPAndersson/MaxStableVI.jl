@@ -50,8 +50,7 @@ function train!(rng::Random.AbstractRNG,
         elboEstimate = 0.0
 
         for obsIdx in batchOrder
-            #Threads.@threads 
-            for m in 1:M
+            Threads.@threads for m in 1:M
     
                 (guideValues[m], guideGrads[m]) = 
                     Zygote.withgradient( 
