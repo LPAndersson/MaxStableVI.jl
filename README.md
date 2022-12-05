@@ -1,4 +1,4 @@
-This is the [Julia](https://julialang.org/downloads/) code accompanying the paper [Variational inference for max-stable processes](https://arxiv.org)
+This is the [Julia](https://julialang.org/downloads/) code accompanying the paper [Variational inference for max-stable processes](https://arxiv.org).
 
 Here's a simple example to try it out:
 ```julia
