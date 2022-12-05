@@ -44,7 +44,7 @@ fit = train!(
 ```
 The elbo can be estimated using Monte Carlo
 ```julia
-logl = elboMC(
+elbo = elboMC(
     model, 
     guide, 
     data = data,
@@ -63,18 +63,10 @@ logl = logLikelihoodIS(
 ```
 For the logistic model the likelihood can be calculated exactly
 ```julia
-observations = sample(
-    LogisticModel(theta = 0.7), 
-    coordinates = coordinates,
-    n = 100
-    )
-data = [observations, coordinates]
-
-logl = logLikelihood(LogisticModel(theta = 0.5), data)
+logl = logLikelihood(model, data)
 ```
 For convenience there is a function to calculate the maximum likelihood estimate
 ```julia
-model = LogisticModel(theta = 0.5)
 mle!(model, data = data)
 ```
 If the dimension is low, the likelihood can also be calculated by enumerating the partitions
