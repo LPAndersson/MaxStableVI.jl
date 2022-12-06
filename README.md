@@ -18,9 +18,9 @@ observations = sample(
 data = [observations, coordinates]
 
 # initiate a restaurant process as guide
-guide = RestaurantProcess(delta = 0.8, 
-                                   alpha = 1.0, 
-                                   rho = 0.01
+guide = RestaurantProcess(delta = 0.9, 
+                                   alpha = -0.8, 
+                                   rho = 100.0
                                    )
 
 # initiate the optimizers
