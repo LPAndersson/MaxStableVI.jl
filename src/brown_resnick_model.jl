@@ -38,7 +38,7 @@ function condLogLikelihood(
     nu = model.nu[1]
   
     # Distance based correlation/covariance matrix
-    covDistMat = semiVarFun(lambda, nu; coordinates = coordinates, d = d)
+    covDistMat = covMatrix(lambda, nu; coordinates = coordinates, d = d)
   
     # partial derivatives of V term (from Wadsworth & Tawn (2014))
     VPartDeriv = VPartDerivBR(observation, partition, covDistMat, d)
@@ -62,9 +62,8 @@ function sample(
     λ = model.lambda[1]
     ν = model.nu[1]
     γ(x) = (sqrt(sum(x.^2))/λ)^ν
-    d = size(observation)[2]
 
-    Wdist = MvNormal( semiVarFun(λ, ν, coordinates = coordinates, d = d) )
+    Wdist = MvNormal( covMatrix(λ, ν, coordinates = coordinates, d = size(coordinates)[1]) )
   
     for i in 1:n
         ζinv = -log(rand(rng))
@@ -90,7 +89,7 @@ function sample(
 end
 sample(model::BrownResnickModel; coordinates::Matrix{Float64}, n::Int) = sample(Random.default_rng(), model; coordinates = coordinates, n = n)
 
-function semiVarFun(lambda::Float64, nu::Float64; coordinates::Matrix{Float64}, d::Int64)
+function covMatrix(lambda::Float64, nu::Float64; coordinates::Matrix{Float64}, d::Int64)
 
     covarMat = Zygote.Buffer(zeros(typeof(lambda), d, d))
   
