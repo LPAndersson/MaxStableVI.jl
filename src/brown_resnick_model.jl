@@ -62,8 +62,9 @@ function sample(
     λ = model.lambda[1]
     ν = model.nu[1]
     γ(x) = (sqrt(sum(x.^2))/λ)^ν
+    d = size(observation)[2]
 
-    Wdist = MvNormal( covMatrix(model, coordinates) )
+    Wdist = MvNormal( semiVarFun(λ, ν, coordinates = coordinates, d = d) )
   
     for i in 1:n
         ζinv = -log(rand(rng))
@@ -129,8 +130,11 @@ function VBR(observation::Vector{Float64}, d::Int64, covDistMat::Matrix{Float64}
   
         intUp = vec( log.(xVec ./ x) + xjVar ./ 2 .+ xiVar / 2 .- covVec )# upper integration limit
   
-        gaussPr = qsimvnv(covMatI, intUp)[1] # D-1 multivariate Gaussian probability
-  
+        if length(intUp) == 1
+            gaussPr = normcdf(0.0, sqrt(covMatI[1,1]), intUp[1])
+        else
+            gaussPr = qsimvnv(covMatI, intUp)[1] # D-1 multivariate Gaussian probability
+        end
         V += (1/x * gaussPr)
     end
     return V
@@ -186,7 +190,7 @@ function VPartDerivBR(
 
             # if subset j only has one variabe compute univariate Gaussian, else compute multivariate Gaussian
             if length(intUp) == 1
-                gaussProb = normcdf(0.0, gammaMat[1,1], intUp[1])
+                gaussProb = normcdf(0.0, sqrt(gammaMat[1,1]), intUp[1])
             else
                 gaussProb = qsimvnv(gammaMat, intUp)[1]
             end
@@ -215,36 +219,14 @@ function VPartDerivBR(
             # full partial derivative expression
             VDeriv += (fact1 + fact2 + fact3)
         else
-            fact3 = - 1/2 * reshape(LinearAlgebra.transpose(logXTau) * ((2 * qTau) / qTau1 + covDistMatTauInv * varTau - (qqTau * varTau) / qTau1))[1]
+            fact3 = -logXTau[1]
+            #fact3 = - 1/2 * reshape(LinearAlgebra.transpose(logXTau) * ((2 * qTau) / qTau1 + covDistMatTauInv * varTau - (qqTau * varTau) / qTau1))[1]
 
             # full partial derivative expression
             VDeriv += (fact1 + fact3)
         end
     end
     return VDeriv
-end
-
-covMatrix = function(model::BrownResnickModel, coordinates::Matrix{Float64})
-
-    N = size(coordinates)[1]
-  
-    λ = model.lambda[1]
-    ν = model.nu[1]
-
-    γ(x) = (sqrt(sum(x.^2))/λ)^ν
-  
-    covarMat = zeros(Float64, N, N)
-  
-    c = coordinates./λ
-  
-    for k in 1:N
-      for l in 1:N
-        covarMat[k, l] = γ(c[k,:]) + γ(c[l,:]) - γ(c[l,:] .- c[k,:])
-      end
-    end
-  
-    return covarMat
-
 end
 
 function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
