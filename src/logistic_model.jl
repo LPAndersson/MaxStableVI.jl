@@ -4,13 +4,17 @@ import Random
 import Flux: @functor
 import StatsFuns: logistic
 
+# import Base.@kwdef
+# @kwdef mutable struct LogisticModel <: AbstractMaxStableModel
+#     theta::Float64
+# end
+
 mutable struct LogisticModel <: AbstractMaxStableModel
     theta::Vector{Float64}
 end
 
+@Flux.functor LogisticModel
 LogisticModel(; theta::Float64) = LogisticModel([theta])
-
-@functor LogisticModel
 
 function clamp!(model::LogisticModel)
     model.theta[1] = clamp(model.theta[1],0.01, 1.0)

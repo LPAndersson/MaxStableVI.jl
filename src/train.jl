@@ -1,5 +1,4 @@
 import Flux
-import Zygote
 import Random
 import StatsBase
 
@@ -20,26 +19,26 @@ function train!(rng::Random.AbstractRNG,
     observations = data[1]
     coordinates = data[2]
 
+    guide_opt_state = Flux.setup(guideopt,guide)
+    model_opt_state = Flux.setup(modelopt,model)
+
     (n, d) = size(observations)
         
-    modelParamHist = Vector{Vector{Float64}}(undef,0)
-    guideParamHist = Vector{Vector{Float64}}(undef,0)
+    modelHist = Vector{AbstractMaxStableModel}(undef,0)
+    guideHist = Vector{AbstractGuide}(undef,0)
     
     elboHist = Vector{Float64}(undef,0)  
 
     guideSamples = [[[1]] for _ in 1:M]
 
     guideValues = Vector{Float64}(undef, M)
-    guideGrads = Vector{Zygote.Grads}(undef, M)
+    guideGrads = Vector{Vector{Array{Float64}}}(undef, M)
 
-    pqgradLogq = Array{Zygote.Grads}(undef, M)
-    pqgradLogp = Array{Zygote.Grads}(undef, M)
+    pqgradLogq = Vector{Vector{Array{Float64}}}(undef, M)
+    pqgradLogp = Array{Vector{Array{Float64}}}(undef, M)
     
     modelValues = Vector{Float64}(undef, M)
-    modelGrads = Vector{Zygote.Grads}(undef, M)
-        
-    guideParams = Flux.params(guide)
-    modelParams = Flux.params(model)
+    modelGrads = Vector{Vector{Array{Float64}}}(undef, M)
 
     c = 0
 
@@ -51,28 +50,32 @@ function train!(rng::Random.AbstractRNG,
 
         for obsIdx in batchOrder
             Threads.@threads for m in 1:M
-    
-                (guideValues[m], guideGrads[m]) = 
-                    Zygote.withgradient( 
-                        () -> sample(
-                                guide, 
-                                observations[obsIdx,:],
-                                coordinates,
-                                guideSamples[m]
-                                ), 
-                        guideParams
-                        )
 
-                (modelValues[m], modelGrads[m]) = 
-                    Zygote.withgradient( 
-                        () -> condLogLikelihood(
-                            model, 
-                            observations[obsIdx,:], 
-                            coordinates, 
+                (guideValues[m], g) = 
+                    Flux.withgradient( 
+                        g -> sample(
+                            g, 
+                            observations[obsIdx,:],
+                            coordinates,
                             guideSamples[m]
                             ), 
-                        modelParams
+                        guide
                         )
+
+                guideGrads[m] = collect(g[1])
+
+                (modelValues[m], g) = 
+                Flux.withgradient( 
+                    model -> condLogLikelihood(
+                        model, 
+                        observations[obsIdx,:], 
+                        coordinates, 
+                        guideSamples[m]
+                        ), 
+                    model
+                    )
+
+                modelGrads[m] = collect(g[1])
 
                 pqgradLogq[m] = exp(modelValues[m] - guideValues[m]) .* guideGrads[m]
                 pqgradLogp[m] = exp(modelValues[m] - guideValues[m]) .* modelGrads[m]
@@ -83,11 +86,11 @@ function train!(rng::Random.AbstractRNG,
         
             log_pqsum = logsumexp(modelValues .- guideValues)
                 
-            modelStep =  exp(-log_pqsum) .* reduce(.+, pqgradLogp)
-            guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ (log_pqsum - c) .* guideGradSum
+            modelStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogp)
+            guideStep =  -(-exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ (log_pqsum - c) .* guideGradSum)
 
-            Flux.update!(modelopt, modelParams, (-1).* modelStep)
-            Flux.update!(guideopt, guideParams, (-1).* guideStep)   
+            model_opt_state, model = Flux.update!(model_opt_state, model, (; zip(fieldnames(typeof(model)), modelStep)...))
+            guide_opt_state, guide = Flux.update!(guide_opt_state, guide, (; zip(fieldnames(typeof(guide)), guideStep)...))
             
             clamp!(model)
             clamp!(guide)
@@ -98,8 +101,8 @@ function train!(rng::Random.AbstractRNG,
 
         end
 
-        push!(modelParamHist, getindex.(modelParams[:],1))
-        push!(guideParamHist, getindex.(guideParams[:],1))
+        push!(modelHist, deepcopy(model))
+        push!(guideHist, deepcopy(guide))
         push!(elboHist, elboEstimate)
 
         if printing 
@@ -109,8 +112,8 @@ function train!(rng::Random.AbstractRNG,
     end
 ≈
     return Dict([
-        ("model", modelParamHist),
-        ("guide", guideParamHist),
+        ("model", modelHist),
+        ("guide", guideHist),
         ("elbo", elboHist)
     ])
 end

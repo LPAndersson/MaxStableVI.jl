@@ -3,8 +3,9 @@ module MaxStableVI
 #Guides
 abstract type AbstractGuide end
 
-export sample, logLikelihood, RestaurantProcess
+export sample, logLikelihood, RestaurantProcess, NNGuide
 include("restaurant_process.jl")
+include("nn_partition_process.jl")
 
 #Models
 abstract type AbstractMaxStableModel end
