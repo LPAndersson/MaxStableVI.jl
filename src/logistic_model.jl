@@ -1,16 +1,21 @@
 import Optim
-import Random
+import Combinatorics: powerset
+import IterTools
 
 import Flux: @functor
 import StatsFuns: logistic
+
+# import Base.@kwdef
+# @kwdef mutable struct LogisticModel <: AbstractMaxStableModel
+#     theta::Float64
+# end
 
 mutable struct LogisticModel <: AbstractMaxStableModel
     theta::Vector{Float64}
 end
 
-LogisticModel(; theta::Float64) = LogisticModel([theta])
-
 @functor LogisticModel
+LogisticModel(; theta::Float64) = LogisticModel([theta])
 
 function clamp!(model::LogisticModel)
     model.theta[1] = clamp(model.theta[1],0.01, 1.0)
@@ -72,6 +77,21 @@ function logLikelihood( #Shi: MULTIVARIATE EXTREME VALUE DISTRIBUTION AND ITS FI
         logl = logl + (- 1 / theta - 1) * sum(log.(obs)) + (1 - dataDim / theta) * log(z) - z + log(Q)
     end
     return logl
+end
+
+function compositeMle!(model::LogisticModel; data::Vector{Matrix{Float64}}, degree::Int64)
+    modelCopy = deepcopy(model)
+
+    loss = function(x::Float64)
+        modelCopy.theta = [x]
+        return -compositeLogLikelihood(modelCopy, data, degree)
+    end
+
+    optimal = Optim.optimize(loss, 0.0, 1.0 )
+
+    model.theta = [optimal.minimizer]
+
+    model
 end
 
 function mle!(model::LogisticModel; data::Vector{Matrix{Float64}})
@@ -138,3 +158,4 @@ function sampleStableDist(rng::Random.AbstractRNG, theta::Float64)
 
   end
   sampleStableDist(theta::Float64) =  sampleStableDist(Random.default_rng(), theta)
+

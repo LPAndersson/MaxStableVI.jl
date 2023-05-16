@@ -106,8 +106,7 @@ function loglikelihoodEnumerate(
     model::AbstractMaxStableModel, 
     data::Vector{Matrix{Float64}})
 
-    observations = data[1]
-    coordinates = data[2]
+    observations, coordinates = data
 
     (n, d) = size(observations)
 
@@ -123,3 +122,22 @@ function loglikelihoodEnumerate(
     end
     return loglikelihood
 end
+
+function compositeLogLikelihood(
+    model::AbstractMaxStableModel,
+    data::Vector{Matrix{Float64}},
+    degree::Int64
+    ) 
+
+    observations, coordinates = data
+    n, d = size(observations)
+    logl = 0
+
+    for s in powerset(1:d,degree,degree)
+        logl = logl + loglikelihoodEnumerate(
+            model,
+            [observations[:,s], coordinates[s,:]]
+        )
+    end
+    return logl
+  end

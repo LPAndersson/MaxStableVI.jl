@@ -233,20 +233,58 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     modelCopy = deepcopy(model)
 
     function loss(x)
-        modelCopy.lambda = [exp(x[1])]
-        modelCopy.nu = [2* logistic(x[2])]
+        modelCopy.lambda = [x[1]]
+        modelCopy.nu = [x[2]]
         return -loglikelihoodEnumerate(modelCopy, data)
     end
 
+    lower = [0.01, 0.02] 
+    upper = [Inf, 1.99] #upper bound for variables 
+    initial_x = [0.5, 0.5]
+    inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
+
+
     optimal = Optim.optimize(
         loss, 
-        [0.0,0.0] , 
-        Optim.NelderMead()
+        lower,
+        upper,
+        initial_x,
+        Optim.Fminbox(inner_optimizer)
         )
+        
+        model.lambda =  [optimal.minimizer[1]]
+        model.nu = [optimal.minimizer[2]]
 
-    model.lambda = [exp(optimal.minimizer[1])]
-    model.nu = [2* logistic(optimal.minimizer[2])]
-
-    model
+        return model
 
 end
+
+function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, degree::Int64)
+    modelCopy = deepcopy(model)
+
+    loss = function(x::Vector{Float64})
+        modelCopy.lambda = [x[1]]
+        modelCopy.nu = [x[2]]
+        return -compositeLogLikelihood(modelCopy, data, degree)
+    end
+
+    lower = [0.01, 0.02] 
+    upper = [Inf, 1.99] #upper bound for variables 
+    initial_x = [0.5, 0.5]
+    inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
+
+
+    optimal = Optim.optimize(
+        loss, 
+        lower,
+        upper,
+        initial_x,
+        Optim.Fminbox(inner_optimizer)
+        )
+        
+        model.lambda =  [optimal.minimizer[1]]
+        model.nu = [optimal.minimizer[2]]
+
+        return model
+    
+    end
