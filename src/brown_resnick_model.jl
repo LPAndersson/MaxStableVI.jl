@@ -280,7 +280,7 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
         upper,
         initial_x,
         Optim.Fminbox(inner_optimizer),
-        Optim.options(f_calls_limit = 100)
+        f_calls_limit = 100
         )
         
         model.lambda =  [optimal.minimizer[1]]
