@@ -233,8 +233,8 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     modelCopy = deepcopy(model)
 
     function loss(x)
-        modelCopy.lambda = softplus.([x[1]])
-        modelCopy.nu = 2*logistic.([x[2]])
+        modelCopy.lambda = softplus.([x[1]]) + 0.01
+        modelCopy.nu = 1.98.*logistic.([x[2]]) + 0.01
         return -loglikelihoodEnumerate(modelCopy, data)
     end
 
@@ -250,8 +250,8 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
             )
         )
     
-    model.lambda =  [softplus.(optimal.minimizer[1])]
-    model.nu = [2*logistic.(optimal.minimizer[2])]
+    model.lambda =  [softplus.([x[1]]) + 0.01]
+    model.nu = [1.98.*logistic.([x[2]]) + 0.01]
 
     return model
 
@@ -262,8 +262,8 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
     modelCopy = deepcopy(model)
 
     loss = function(x::Vector{Float64})
-        modelCopy.lambda = softplus.([x[1]])
-        modelCopy.nu = 2*logistic.([x[2]])
+        modelCopy.lambda = softplus.([x[1]]) + 0.01
+        modelCopy.nu = 1.98.*logistic.([x[2]]) + 0.01
         return -compositeLogLikelihood(modelCopy, data, degree)
     end
 
@@ -279,8 +279,8 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
             )
         )
     
-    model.lambda =  [softplus.(optimal.minimizer[1])]
-    model.nu = [2*logistic.(optimal.minimizer[2])]
+    model.lambda =  [softplus.([x[1]]) + 0.01]
+    model.nu = [1.98.*logistic.([x[2]]) + 0.01]
 
             # optimal = Optim.optimize(
     #     loss, 
