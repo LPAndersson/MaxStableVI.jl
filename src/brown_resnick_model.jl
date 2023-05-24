@@ -250,8 +250,8 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
             )
         )
     
-    model.lambda =  [log.(optimal.minimizer[1])]
-    model.nu = [logit.(optimal.minimizer[2]/2)]
+    model.lambda =  [exp.(optimal.minimizer[1])]
+    model.nu = [2*logistic.(optimal.minimizer[2])]
 
     return model
 
@@ -279,8 +279,8 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
             )
         )
     
-    model.lambda =  [log.(optimal.minimizer[1])]
-    model.nu = [logit.(optimal.minimizer[2]/2)]
+    model.lambda =  [exp.(optimal.minimizer[1])]
+    model.nu = [2*logistic.(optimal.minimizer[2])]
 
             # optimal = Optim.optimize(
     #     loss, 
