@@ -233,63 +233,64 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     modelCopy = deepcopy(model)
 
     function loss(x)
-        modelCopy.lambda = [x[1]]
-        modelCopy.nu = [x[2]]
+        modelCopy.lambda = exp([x[1]])
+        modelCopy.nu = 2*logistic([x[2]])
         return -loglikelihoodEnumerate(modelCopy, data)
     end
 
-    lower = [0.01, 0.02] 
-    upper = [Inf, 1.99] #upper bound for variables 
-    initial_x = [0.5, 0.5]
-    inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
+    x0 = [0.0, 0.0]
 
-
-    optimal = Optim.optimize(
+    Optim.optimize(
         loss, 
-        lower,
-        upper,
-        initial_x,
-        Optim.Fminbox(inner_optimizer)
+        x0, 
+        Optim.LBFGS(),
+        autodiff = :forward,
+        x_tol = 1e-2
         )
-        
-        model.lambda =  [optimal.minimizer[1]]
-        model.nu = [optimal.minimizer[2]]
+    
+    model.lambda =  [log(optimal.minimizer[1])]
+    model.nu = [logit(optimal.minimizer[2]/2)]
 
-        return model
+    return model
 
 end
 
 function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, degree::Int64)
+    
     modelCopy = deepcopy(model)
 
     loss = function(x::Vector{Float64})
-        modelCopy.lambda = [x[1]]
-        modelCopy.nu = [x[2]]
+        modelCopy.lambda = exp([x[1]])
+        modelCopy.nu = 2*logistic([x[2]])
         return -compositeLogLikelihood(modelCopy, data, degree)
     end
 
-    lower = [0.01, 0.02] 
-    upper = [Inf, 1.99] #upper bound for variables 
-    initial_x = [0.5, 0.5]
-    inner_optimizer = Optim.GradientDescent(linesearch=Optim.LineSearches.BackTracking(order=3))
+    x0 = [0.0, 0.0]
 
-
-    optimal = Optim.optimize(
+    Optim.optimize(
         loss, 
-        lower,
-        upper,
-        initial_x,
-        Optim.Fminbox(inner_optimizer),
-        Optim.Options(
-            x_tol = 1e-2,
-            iterations = 10,
-            show_trace = true
-            )
+        x0, 
+        Optim.LBFGS(),
+        autodiff = :forward,
+        x_tol = 1e-2
         )
-        
-        model.lambda =  [optimal.minimizer[1]]
-        model.nu = [optimal.minimizer[2]]
+    
+    model.lambda =  [log(optimal.minimizer[1])]
+    model.nu = [logit(optimal.minimizer[2]/2)]
 
-        return model
+            # optimal = Optim.optimize(
+    #     loss, 
+    #     lower,
+    #     upper,
+    #     initial_x,
+    #     Optim.Fminbox(inner_optimizer),
+    #     Optim.Options(
+    #         x_tol = 1e-2,
+    #         iterations = 10,
+    #         show_trace = true
+    #         )
+    #     )
+
+    return model
     
     end
