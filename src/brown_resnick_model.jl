@@ -3,7 +3,7 @@ import LinearAlgebra
 import Optim
 
 import Distributions: MvNormal
-import StatsFuns: normcdf, logistic
+import StatsFuns: normcdf, logistic, softplus
 
 import InvertedIndices: Not
 import Flux: @functor
