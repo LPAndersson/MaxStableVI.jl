@@ -3,7 +3,7 @@ import LinearAlgebra
 import Optim
 
 import Distributions: MvNormal
-import StatsFuns: normcdf, logistic, softplus
+import StatsFuns
 
 import InvertedIndices: Not
 import Flux: @functor
@@ -130,7 +130,7 @@ function VBR(observation::Vector{Float64}, d::Int64, covDistMat::Matrix{Float64}
         intUp = vec( log.(xVec ./ x) + xjVar ./ 2 .+ xiVar / 2 .- covVec )# upper integration limit
   
         if length(intUp) == 1
-            gaussPr = normcdf(0.0, sqrt(covMatI[1,1]), intUp[1])
+            gaussPr = StatsFuns.normcdf(0.0, sqrt(covMatI[1,1]), intUp[1])
         else
             gaussPr = qsimvnv(covMatI, intUp)[1] # D-1 multivariate Gaussian probability
         end
@@ -189,7 +189,7 @@ function VPartDerivBR(
 
             # if subset j only has one variabe compute univariate Gaussian, else compute multivariate Gaussian
             if length(intUp) == 1
-                gaussProb = normcdf(0.0, sqrt(gammaMat[1,1]), intUp[1])
+                gaussProb = StatsFuns.normcdf(0.0, sqrt(gammaMat[1,1]), intUp[1])
             else
                 gaussProb = qsimvnv(gammaMat, intUp)[1]
             end
@@ -233,8 +233,8 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     modelCopy = deepcopy(model)
 
     function loss(x)
-        modelCopy.lambda = softplus.([x[1]]) .+ 0.01
-        modelCopy.nu = 1.98.*logistic.([x[2]]) .+ 0.01
+        modelCopy.lambda = [StatsFuns.softplus(x[1]) + 0.01]
+        modelCopy.nu = [1.98*StatsFuns.logistic(x[2]) + 0.01]
         return -loglikelihoodEnumerate(modelCopy, data)
     end
 
@@ -243,17 +243,16 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     optimal = Optim.optimize(
         loss, 
         x0, 
-        Optim.LBFGS(),
+        Optim.GradientDescent(),
         Optim.Options(
-            x_tol = 1e-3,
             iterations = 100
             )
         )
-
+    
     x = optimal.minimizer
     
-    model.lambda =  [softplus.([x[1]]) .+ 0.01]
-    model.nu = [1.98.*logistic.([x[2]]) .+ 0.01]
+    model.lambda =  [StatsFuns.softplus(x[1]) + 0.01]
+    model.nu = [1.98*StatsFuns.logistic(x[2]) + 0.01]
 
     return model
 
@@ -264,8 +263,8 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
     modelCopy = deepcopy(model)
 
     loss = function(x::Vector{Float64})
-        modelCopy.lambda = softplus.([x[1]]) .+ 0.01
-        modelCopy.nu = 1.98.*logistic.([x[2]]) .+ 0.01
+        modelCopy.lambda = [StatsFuns.softplus(x[1]) + 0.01]
+        modelCopy.nu = [1.98*StatsFuns.logistic(x[2]) + 0.01]
         return -compositeLogLikelihood(modelCopy, data, degree)
     end
 
@@ -274,17 +273,16 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
     optimal = Optim.optimize(
         loss, 
         x0, 
-        Optim.LBFGS(),
+        Optim.GradientDescent(),
         Optim.Options(
-            x_tol = 1e-3,
             iterations = 100
             )
         )
     
     x = optimal.minimizer
     
-    model.lambda =  [softplus.([x[1]]) .+ 0.01]
-    model.nu = [1.98.*logistic.([x[2]]) .+ 0.01]
+    model.lambda =  [StatsFuns.softplus(x[1]) + 0.01]
+    model.nu = [1.98*StatsFuns.logistic(x[2]) + 0.01]
 
             # optimal = Optim.optimize(
     #     loss, 
