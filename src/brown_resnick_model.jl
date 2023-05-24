@@ -243,7 +243,7 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     optimal = Optim.optimize(
         loss, 
         x0, 
-        Optim.GradientDescent(),
+        Optim.ConjugateGradient(),
         Optim.Options(
             iterations = 100
             )
@@ -273,7 +273,7 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
     optimal = Optim.optimize(
         loss, 
         x0, 
-        Optim.GradientDescent(),
+        Optim.ConjugateGradient(),
         Optim.Options(
             iterations = 100
             )
