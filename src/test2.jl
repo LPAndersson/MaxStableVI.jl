@@ -15,7 +15,7 @@ data = [observations, coordinates]
 #model = LogisticModel( theta = 0.5)
 
 model = BrownResnickModel(lambda = 0.5, nu = 0.5)
-compositeMle!(model, data = data, degree = 5)
+compositeMle!(model, data = data, degree = 2)
 
-#model = LogisticModel( theta = 0.5)
-#mle!(model, data = data)
+model = BrownResnickModel(lambda = 0.5, nu = 0.5)
+mle!(model, data = data)
