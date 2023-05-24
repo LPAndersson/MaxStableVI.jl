@@ -240,7 +240,7 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
 
     x0 = [0.0, 0.0]
 
-    Optim.optimize(
+    optimal = Optim.optimize(
         loss, 
         x0, 
         Optim.LBFGS(),
@@ -269,7 +269,7 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
 
     x0 = [0.0, 0.0]
 
-    Optim.optimize(
+    optimal = Optim.optimize(
         loss, 
         x0, 
         Optim.LBFGS(),
