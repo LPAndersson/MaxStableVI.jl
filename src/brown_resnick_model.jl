@@ -249,6 +249,8 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
             iterations = 100
             )
         )
+
+    x = optimal.minimizer
     
     model.lambda =  [softplus.([x[1]]) .+ 0.01]
     model.nu = [1.98.*logistic.([x[2]]) .+ 0.01]
@@ -278,6 +280,8 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
             iterations = 100
             )
         )
+    
+    x = optimal.minimizer
     
     model.lambda =  [softplus.([x[1]]) .+ 0.01]
     model.nu = [1.98.*logistic.([x[2]]) .+ 0.01]
