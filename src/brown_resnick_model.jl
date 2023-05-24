@@ -244,8 +244,10 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
         loss, 
         x0, 
         Optim.LBFGS(),
-        autodiff = :forward,
-        x_tol = 1e-2
+        Optim.Options(
+            x_tol = 1e-3,
+            iterations = 100
+            )
         )
     
     model.lambda =  [log(optimal.minimizer[1])]
@@ -271,8 +273,10 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
         loss, 
         x0, 
         Optim.LBFGS(),
-        autodiff = :forward,
-        x_tol = 1e-2
+        Optim.Options(
+            x_tol = 1e-3,
+            iterations = 100
+            )
         )
     
     model.lambda =  [log(optimal.minimizer[1])]
