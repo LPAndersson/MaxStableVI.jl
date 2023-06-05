@@ -238,7 +238,7 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
         return -loglikelihoodEnumerate(modelCopy, data)
     end
 
-    x0 = [0.0, 0.0]
+    x0 = [StatsFuns.logexpm1(model.lambda[1]-0.01), StatsFuns.logit((model.nu[1]-0.01)/1.98)]
 
     optimal = Optim.optimize(
         loss, 
