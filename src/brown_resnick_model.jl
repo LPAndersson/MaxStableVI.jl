@@ -243,7 +243,7 @@ function mle!(model::BrownResnickModel; data::Vector{Matrix{Float64}})
     optimal = Optim.optimize(
         loss, 
         x0, 
-        Optim.ConjugateGradient(),
+        Optim.NelderMead(),
         Optim.Options(
             iterations = 100
             )
@@ -273,7 +273,7 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
     optimal = Optim.optimize(
         loss, 
         x0, 
-        Optim.ConjugateGradient(),
+        Optim.NelderMead(),
         Optim.Options(
             iterations = 100
             )
@@ -283,19 +283,6 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
     
     model.lambda =  [StatsFuns.softplus(x[1]) + 0.01]
     model.nu = [1.98*StatsFuns.logistic(x[2]) + 0.01]
-
-            # optimal = Optim.optimize(
-    #     loss, 
-    #     lower,
-    #     upper,
-    #     initial_x,
-    #     Optim.Fminbox(inner_optimizer),
-    #     Optim.Options(
-    #         x_tol = 1e-2,
-    #         iterations = 10,
-    #         show_trace = true
-    #         )
-    #     )
 
     return model
     
