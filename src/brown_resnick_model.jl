@@ -268,7 +268,7 @@ function compositeMle!(model::BrownResnickModel; data::Vector{Matrix{Float64}}, 
         return -compositeLogLikelihood(modelCopy, data, degree)
     end
 
-    x0 = [0.0, 0.0]
+    x0 = [StatsFuns.logexpm1(model.lambda[1]-0.01), StatsFuns.logit((model.nu[1]-0.01)/1.98)]
 
     optimal = Optim.optimize(
         loss, 
