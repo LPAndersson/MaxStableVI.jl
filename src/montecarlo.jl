@@ -75,11 +75,11 @@ function logLikelihoodIS(
 
     (n, d) = size(observations)
 
-    @floop for countObservation in 1:n
+    for countObservation in 1:n
         guideLogLikelihood = Vector{Float64}(undef,numOfSamples)
         modelLogLikelihood = Vector{Float64}(undef,numOfSamples)
         guideSample = Vector{Vector{Int64}}(undef,0)
-        for countSamples in 1:numOfSamples
+        @floop for countSamples in 1:numOfSamples
             guideLogLikelihood[countSamples] = sample(rng, guide, observations[countObservation,:], coordinates, guideSample)
             modelLogLikelihood[countSamples] = condLogLikelihood(model, observations[countObservation,:], coordinates, guideSample)
         end
