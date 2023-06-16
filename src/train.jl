@@ -94,7 +94,7 @@ function train!(rng::Random.AbstractRNG,
         
             elboEstimate += log_pqsum - log(M)
 
-            c = 0.99 * c + (1-0.99) * log_pqsum
+            c = 0#0.99 * c + (1-0.99) * log_pqsum
 
         end
 
