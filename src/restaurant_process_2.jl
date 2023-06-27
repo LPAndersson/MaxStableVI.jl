@@ -27,7 +27,7 @@ end
 function corrMatrixFun(angle::Vector{Float64}, r::Vector{Float64})
 
     d = length(angle)
-    Sigma = Zygote.Buffer(zeros(typeof(angle), d, d))
+    Sigma = Zygote.Buffer(zeros(typeof(angle[1]), d, d))
   
     for i in 1:d
         for j in (i+1):d
