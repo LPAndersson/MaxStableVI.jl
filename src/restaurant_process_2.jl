@@ -126,26 +126,3 @@ sample(
     coordinate,
     partition
     )
-
-
-function fisher_yates_sample!(rng::Random.AbstractRNG, a::UnitRange{Int64}, x::Zygote.Buffer{Int64, Vector{Int64}})
-    n = length(a)
-    k = length(x)
-    k <= n || error("length(x) should not exceed length(a)")
-
-    inds = Zygote.Buffer(1:n)
-
-    for i = 1:n
-        @inbounds inds[i] = i
-    end
-
-    @inbounds for i = 1:k
-        j = rand(rng, i:n)
-        t = inds[j]
-        inds[j] = inds[i]
-        inds[i] = t
-        x[i] = a[t]
-    end
-    return x
-end
-fisher_yates_sample!( a::UnitRange{Int64}, x::Zygote.Buffer{Int64, Vector{Int64}}) = fisher_yates_sample!(Random.default_rng(), a, x)
