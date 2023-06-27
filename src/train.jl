@@ -21,19 +21,7 @@ function train!(rng::Random.AbstractRNG,
     coordinates = data[2]
 
     (n, d) = size(observations)
-<<<<<<< HEAD
         
-=======
-
-    #traceStep  = 10
-
-    #movingAvgLength = 50
-    #movingAvg = zeros(Float64,movingAvgLength)
-
-    #modelParamHist = Vector{Zygote.Params}(undef,0)
-    #guideParamHist = Vector{Zygote.Params}(undef,0)
-    
->>>>>>> origin/newGuide
     modelParamHist = Vector{Vector{Float64}}(undef,0)
     guideParamHist = Vector{Vector{Float64}}(undef,0)
     
