@@ -5,6 +5,9 @@ abstract type AbstractGuide end
 
 export sample, logLikelihood, RestaurantProcess
 include("restaurant_process.jl")
+export RestaurantProcess2
+include("restaurant_process_2.jl")
+
 
 #Models
 abstract type AbstractMaxStableModel end
