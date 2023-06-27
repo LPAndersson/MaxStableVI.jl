@@ -80,20 +80,13 @@ function train!(rng::Random.AbstractRNG,
             end
     
             guideGradSum = reduce(.+, guideGrads)
-<<<<<<< HEAD
-=======
 
             #c = elboEstimate
->>>>>>> origin/newGuide
         
             log_pqsum = logsumexp(modelValues .- guideValues)
                 
             modelStep =  exp(-log_pqsum) .* reduce(.+, pqgradLogp)
-<<<<<<< HEAD
-            guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ (log_pqsum - c) .* guideGradSum
-=======
             guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ log_pqsum .* guideGradSum
->>>>>>> origin/newGuide
 
             Flux.update!(modelopt, modelParams, (-1).* modelStep)
             Flux.update!(guideopt, guideParams, (-1).* guideStep)   
