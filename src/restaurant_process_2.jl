@@ -3,17 +3,19 @@ import Zygote
 
 import Flux: @functor
 
-mutable struct RestaurantProcess <: AbstractGuide
+mutable struct RestaurantProcess2 <: AbstractGuide
     delta::Vector{Float64}
     alpha::Vector{Float64}
     rho::Vector{Float64}
+    angle::Vector{Float64}
+    r::Vector{Float64}
 end
 
-RestaurantProcess(; delta::Float64, alpha::Float64, rho::Float64) = RestaurantProcess([delta],[alpha],[rho])
+RestaurantProcess2(; delta::Float64, alpha::Float64, rho::Float64, angle::Vector{Float64}, r::Vector{Float64}) = RestaurantProcess2([delta],[alpha],[rho],angle,r)
 
-@functor RestaurantProcess
+@functor RestaurantProcess2
 
-function clamp!(guide::RestaurantProcess)
+function clamp!(guide::RestaurantProcess2)
 
     guide.delta[1] = clamp(guide.delta[1], 0.0, 0.99 )
 
@@ -24,14 +26,21 @@ function clamp!(guide::RestaurantProcess)
 
 end
 
-function corrMatrixFun(rho::Float64, observation::Vector{Float64})
+function corrMatrixFun(rho::Float64, angle::Vector{Float64}, r::Vector{Float64})
 
-    d = length(observation)
+    d = length(angle)
     Sigma = Zygote.Buffer(zeros(typeof(rho), d, d))
   
     for i in 1:d
         for j in (i+1):d
-            distance = abs(observation[i] - observation[j]) # compute distances
+
+            yi = r[i] * sin(angle[i])
+            yj = r[j] * sin(angle[j])
+            xi = r[i] * cos(angle[i])
+            xj = r[j] * cos(angle[j])
+
+            distance = sqrt((yi-yj)^2 + (xi-xj)^2)
+
             corr = exp(- distance / rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity  
             Sigma[i, j] = corr
             Sigma[j, i] = corr
@@ -44,7 +53,7 @@ end
 
 function sample(
     rng::Random.AbstractRNG,
-    guide::RestaurantProcess, 
+    guide::RestaurantProcess2, 
     observation::Vector{Float64},
     coordinate::Matrix{Float64},
     partition::Vector{Vector{Int64}}
@@ -53,6 +62,8 @@ function sample(
     delta = guide.delta[1]
     alpha = guide.alpha[1]
     rho = guide.rho[1]
+    angle = guide.angle
+    r = guide.r
 
     d = length(observation)
 
@@ -63,7 +74,7 @@ function sample(
 
     logLikelihood = 0.0
 
-    Sigma = corrMatrixFun(rho, observation) # computing correlation matrix based on distances
+    Sigma = corrMatrixFun(rho, angle, r) # computing correlation matrix based on distances
     
     Zygote.@ignore push!(partition_local, [reorder[1]]) #put first customer at empty table
 
@@ -104,7 +115,7 @@ function sample(
 end
 
 sample(
-    guide::RestaurantProcess, 
+    guide::RestaurantProcess2, 
     observation::Vector{Float64},
     coordinate::Matrix{Float64},
     partition::Vector{Vector{Int64}}
