@@ -6,11 +6,11 @@ import Flux: @functor
 mutable struct RestaurantProcess2 <: AbstractGuide
     delta::Vector{Float64}
     alpha::Vector{Float64}
-    angle::Vector{Float64}
-    r::Vector{Float64}
+    x::Vector{Float64}
+    y::Vector{Float64}
 end
 
-RestaurantProcess2(; delta::Float64, alpha::Float64, angle::Vector{Float64}, r::Vector{Float64}) = RestaurantProcess2([delta],[alpha],angle,r)
+RestaurantProcess2(; delta::Float64, alpha::Float64, x::Vector{Float64}, y::Vector{Float64}) = RestaurantProcess2([delta],[alpha],x,y)
 
 @functor RestaurantProcess2
 
@@ -24,20 +24,15 @@ function clamp!(guide::RestaurantProcess2)
 
 end
 
-function corrMatrixFun(angle::Vector{Float64}, r::Vector{Float64})
+function corrMatrixFun(x::Vector{Float64}, y::Vector{Float64})
 
-    d = length(angle)
-    Sigma = Zygote.Buffer(zeros(typeof(angle[1]), d, d))
+    d = length(x)
+    Sigma = Zygote.Buffer(zeros(typeof(x[1]), d, d))
   
     for i in 1:d
         for j in (i+1):d
 
-            yi = r[i] * sin(angle[i])
-            yj = r[j] * sin(angle[j])
-            xi = r[i] * cos(angle[i])
-            xj = r[j] * cos(angle[j])
-
-            distance = sqrt((yi-yj)^2 + (xi-xj)^2)
+            distance = sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2)
 
             #corr = exp(- distance / rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity  
             corr = exp(- distance) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity
@@ -60,8 +55,6 @@ function sample(
   
     delta = guide.delta[1]
     alpha = guide.alpha[1]
-    angle = guide.angle
-    r = guide.r
 
     d = length(observation)
 
@@ -72,7 +65,7 @@ function sample(
 
     logLikelihood = 0.0
 
-    Sigma = corrMatrixFun(angle, r) # computing correlation matrix based on distances
+    Sigma = corrMatrixFun(guide.x, guide.y) # computing correlation matrix based on distances
     
     Zygote.@ignore push!(partition_local, [reorder[1]]) #put first customer at empty table
 
