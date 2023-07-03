@@ -58,7 +58,8 @@ function train!(rng::Random.AbstractRNG,
                                 guide, 
                                 observations[obsIdx,:],
                                 coordinates,
-                                guideSamples[m]
+                                guideSamples[m],
+                                obsIdx
                                 ), 
                         guideParams
                         )

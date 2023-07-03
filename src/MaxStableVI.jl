@@ -7,6 +7,8 @@ export sample, logLikelihood, RestaurantProcess
 include("restaurant_process.jl")
 export RestaurantProcess2
 include("restaurant_process_2.jl")
+export RestaurantProcess3
+include("restaurant_process_3.jl")
 
 
 #export NNGuide

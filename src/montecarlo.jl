@@ -33,7 +33,8 @@ function elboMC(
                         guide, 
                         observations[countObservation,:], 
                         coordinates, 
-                        guideSample
+                        guideSample,
+                        countObservation
                     )
 
                 modelLogL = condLogLikelihood(model, observations[countObservation,:], coordinates, guideSample)
@@ -80,7 +81,13 @@ function logLikelihoodIS(
         modelLogLikelihood = Vector{Float64}(undef,numOfSamples)
         guideSample = Vector{Vector{Int64}}(undef,0)
         for countSamples in 1:numOfSamples
-            guideLogLikelihood[countSamples] = sample(rng, guide, observations[countObservation,:], coordinates, guideSample)
+            guideLogLikelihood[countSamples] = sample(
+                rng, 
+                guide, 
+                observations[countObservation,:], 
+                coordinates, 
+                guideSample,
+                countSamples)
             modelLogLikelihood[countSamples] = condLogLikelihood(model, observations[countObservation,:], coordinates, guideSample)
         end
         @reduce( logLikelhood += logsumexp(modelLogLikelihood .- guideLogLikelihood) - log(numOfSamples) )

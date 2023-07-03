@@ -24,9 +24,11 @@ function clamp!(guide::RestaurantProcess)
 
 end
 
-function corrMatrixFun(rho::Float64, observation::Vector{Float64})
+function corrMatrixFun(guide::RestaurantProcess, observation::Vector{Float64})
 
     d = length(observation)
+    rho = guide.rho[1]
+
     Sigma = Zygote.Buffer(zeros(typeof(rho), d, d))
   
     for i in 1:d
@@ -47,7 +49,8 @@ function sample(
     guide::RestaurantProcess, 
     observation::Vector{Float64},
     coordinate::Matrix{Float64},
-    partition::Vector{Vector{Int64}}
+    partition::Vector{Vector{Int64}},
+    obsNum::Int64
     )
   
     delta = guide.delta[1]
@@ -63,7 +66,7 @@ function sample(
 
     logLikelihood = 0.0
 
-    Sigma = corrMatrixFun(rho, observation) # computing correlation matrix based on distances
+    Sigma = corrMatrixFun(guide, observation) # computing correlation matrix based on distances
     
     Zygote.@ignore push!(partition_local, [reorder[1]]) #put first customer at empty table
 
@@ -107,13 +110,15 @@ sample(
     guide::RestaurantProcess, 
     observation::Vector{Float64},
     coordinate::Matrix{Float64},
-    partition::Vector{Vector{Int64}}
+    partition::Vector{Vector{Int64}},
+    obsNum::Int64
     ) = sample(
     Random.default_rng(),
     guide, 
     observation,
     coordinate,
-    partition
+    partition,
+    obsNum::Int64
     )
 
 
