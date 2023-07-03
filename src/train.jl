@@ -41,7 +41,7 @@ function train!(rng::Random.AbstractRNG,
     guideParams = Flux.params(guide)
     modelParams = Flux.params(model)
 
-    c = 0
+    #c = 0
 
     batchOrder = StatsBase.sample(rng, 1:n, n, replace = false)
   
@@ -50,7 +50,8 @@ function train!(rng::Random.AbstractRNG,
         elboEstimate = 0.0
 
         for obsIdx in batchOrder
-            Threads.@threads for m in 1:M
+            #Threads.@threads 
+            for m in 1:M
     
                 (guideValues[m], guideGrads[m]) = 
                     Zygote.withgradient( 
@@ -82,7 +83,7 @@ function train!(rng::Random.AbstractRNG,
     
             guideGradSum = reduce(.+, guideGrads)
 
-            c = elboEstimate
+            #c = elboEstimate
         
             log_pqsum = logsumexp(modelValues .- guideValues)
                 
@@ -92,12 +93,13 @@ function train!(rng::Random.AbstractRNG,
             Flux.update!(modelopt, modelParams, (-1).* modelStep)
             Flux.update!(guideopt, guideParams, (-1).* guideStep)   
             
-            clamp!(model)
-            clamp!(guide)
+            #clamp!(model)
+            #clamp!(guide)
+            
         
             elboEstimate += log_pqsum - log(M)
 
-            c = 0.99 * c + (1-0.99) * log_pqsum
+            #c = 0.99 * c + (1-0.99) * log_pqsum
 
         end
 
