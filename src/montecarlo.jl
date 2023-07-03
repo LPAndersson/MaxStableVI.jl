@@ -87,7 +87,7 @@ function logLikelihoodIS(
                 observations[countObservation,:], 
                 coordinates, 
                 guideSample,
-                countSamples)
+                countObservation)
             modelLogLikelihood[countSamples] = condLogLikelihood(model, observations[countObservation,:], coordinates, guideSample)
         end
         @reduce( logLikelhood += logsumexp(modelLogLikelihood .- guideLogLikelihood) - log(numOfSamples) )

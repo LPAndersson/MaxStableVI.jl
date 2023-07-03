@@ -7,11 +7,10 @@ mutable struct RestaurantProcess3 <: AbstractGuide
     delta::Vector{Float64}
     alpha::Vector{Float64}
     rho::Vector{Float64}
-    x::Vector{Float64}
-    y::Vector{Float64}
+    latentEmbedding::Matrix{Float64}
 end
 
-RestaurantProcess3(; delta::Vector{Float64}, alpha::Vector{Float64}, rho::Vector{Float64},x::Vector{Float64}, y::Vector{Float64}) = RestaurantProcess3(delta,alpha,rho,x,y)
+RestaurantProcess3(; delta::Vector{Float64}, alpha::Vector{Float64}, rho::Vector{Float64},latentEmbedding::Matrix{Float64}) = RestaurantProcess3(delta,alpha,rho,latentEmbedding)
 
 @functor RestaurantProcess3
 
@@ -27,19 +26,17 @@ end
 
 function corrMatrixFun(guide::RestaurantProcess3, rho::Float64)
 
-    x = guide.x
-    y = guide.y
+    embed = guide.latentEmbedding
 
-    d = length(x)
-    Sigma = Zygote.Buffer(zeros(typeof(x[1]), d, d))
+    d = size(embed)[1]
+    Sigma = Zygote.Buffer(zeros(typeof(embed[1,1]), d, d))
   
     for i in 1:d
         for j in (i+1):d
 
-            distance = sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2)
-
-            #corr = exp(- distance / rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity  
+            distance = sqrt(sum((embed[i,:].-embed[j,:]).^2))  
             corr = exp(- distance/rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity
+            
             Sigma[i, j] = corr
             Sigma[j, i] = corr
         end
