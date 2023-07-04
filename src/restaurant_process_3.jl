@@ -16,9 +16,15 @@ RestaurantProcess3(; delta::Vector{Float64}, alpha::Vector{Float64}, rho::Vector
 
 function clamp!(guide::RestaurantProcess3)
 
-    guide.delta = clamp.(guide.delta, 0.0, 0.99 )
-    guide.rho = clamp.(guide.rho, 0.01, Inf )
-    guide.alpha = clamp.(guide.alpha, -guide.delta.+0.01, Inf )
+    for i in eachindex(guide.delta)
+        guide.delta[i] = clamp(guide.delta[i],0.0, 0.99)
+    end
+    for i in eachindex(guide.rho)
+        guide.rho[i] = clamp(guide.rho[i], 0.01, Inf )
+    end
+    for i in eachindex(guide.alpha)
+        guide.alpha[i] = clamp(guide.alpha[i], -guide.delta[i].+0.01, Inf)
+    end
 
     return Nothing
 
@@ -34,8 +40,9 @@ function corrMatrixFun(guide::RestaurantProcess3, rho::Float64)
     for i in 1:d
         for j in (i+1):d
 
-            distance = sqrt(sum((embed[i,:].-embed[j,:]).^2))  
-            corr = exp(- distance/rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity
+            distance = sum((embed[i,:].-embed[j,:]).^2)
+            #corr = exp(- distance/rho) + 1e-100 * reshape(Random.rand(1), 1)[1] # exponential similarity
+            corr = rho/(distance  + 0.001)#+ 1e-100 * reshape(Random.rand(1), 1)[1]
             
             Sigma[i, j] = corr
             Sigma[j, i] = corr

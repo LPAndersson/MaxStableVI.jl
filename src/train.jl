@@ -93,10 +93,9 @@ function train!(rng::Random.AbstractRNG,
             Flux.update!(modelopt, modelParams, (-1).* modelStep)
             Flux.update!(guideopt, guideParams, (-1).* guideStep)   
             
-            #clamp!(model)
-            #clamp!(guide)
-            
-        
+            clamp!(model)
+            clamp!(guide)
+
             elboEstimate += log_pqsum - log(M)
 
             #c = 0.99 * c + (1-0.99) * log_pqsum
