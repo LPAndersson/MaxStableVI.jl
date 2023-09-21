@@ -135,7 +135,7 @@ sample(
     )
 
 
-function fisher_yates_sample!(rng::Random.AbstractRNG, a::UnitRange{Int64}, x::Zygote.Buffer{Int64, Vector{Int64}})
+#= function fisher_yates_sample!(rng::Random.AbstractRNG, a::UnitRange{Int64}, x::Zygote.Buffer{Int64, Vector{Int64}})
     n = length(a)
     k = length(x)
     k <= n || error("length(x) should not exceed length(a)")
@@ -155,4 +155,4 @@ function fisher_yates_sample!(rng::Random.AbstractRNG, a::UnitRange{Int64}, x::Z
     end
     return x
 end
-fisher_yates_sample!( a::UnitRange{Int64}, x::Zygote.Buffer{Int64, Vector{Int64}}) = fisher_yates_sample!(Random.default_rng(), a, x)
+fisher_yates_sample!( a::UnitRange{Int64}, x::Zygote.Buffer{Int64, Vector{Int64}}) = fisher_yates_sample!(Random.default_rng(), a, x) =#

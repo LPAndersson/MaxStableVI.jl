@@ -11,6 +11,8 @@ export RestaurantProcess3
 include("restaurant_process_3.jl")
 export RestaurantProcess4
 include("restaurant_process_4.jl")
+export MeanField
+include("mean_field.jl")
 
 #export NNGuide
 #include("nn_partition_process.jl")
