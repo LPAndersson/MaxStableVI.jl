@@ -63,7 +63,7 @@ function sample(
     logLikelihood = 0.0
 
     U = vec(sum(u[2:end,:],dims = 1))
-    Zygote.@ignore H[1,:] = h[1,:]
+    #Zygote.@ignore H[1,:] = h[1,:]
     H = [h[1:1,:];zeros(Float32,N-1,dh)]
 
     G = g(H[1,:])
