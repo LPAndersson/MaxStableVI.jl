@@ -27,8 +27,8 @@ end
 
 NeuralClustering(;D::Integer, dh::Integer, dg::Integer) = 
 NeuralClustering(
-    rand(Float32,(D,dh)),
-    rand(Float32,(D,dh)),
+    rand(Float32,(D,dh)).-convert(Float32,0.5),
+    rand(Float32,(D,dh)).-convert(Float32,0.5),
     Flux.Chain(Flux.Dense(dh,5,Flux.relu), Flux.Dense(5,dg)),
     Flux.Chain(Flux.Dense(dg+dh,5,Flux.relu), Flux.Dense(5,1))
 )
