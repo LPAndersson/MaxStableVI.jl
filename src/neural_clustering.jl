@@ -27,10 +27,10 @@ end
 
 NeuralClustering(;D::Integer, dh::Integer, dg::Integer) = 
 NeuralClustering(
-    rand(Float32,(D,dh)).-convert(Float32,0.5),
-    rand(Float32,(D,dh)).-convert(Float32,0.5),
-    Flux.Chain(Flux.Dense(dh,5,Flux.relu), Flux.Dense(5,dg)),
-    Flux.Chain(Flux.Dense(dg+dh,5,Flux.relu), Flux.Dense(5,1))
+    (rand(Float32,(D,dh)).-convert(Float32,0.5))*convert(Float32,10.0),
+    (rand(Float32,(D,dh)).-convert(Float32,0.5))*convert(Float32,10.0),
+    Flux.Chain(Flux.Dense(dh,5,Flux.tanh_fast), Flux.Dense(5,dg)),
+    Flux.Chain(Flux.Dense(dg+dh,5,Flux.tanh_fast), Flux.Dense(5,1))
 )
 
 @functor NeuralClustering
@@ -147,6 +147,15 @@ function logLikelihood(
 
         log_q = SliceMap.slicemap((x) -> f([G + g(x + h[n,:]) - g(x);U]), H[1:(K+1),:], dims = 2)
         q = Flux.softmax(vec(log_q))
+#=         println("G:", G)
+        println("h[n,:]:", h[n,:])
+        println("g:", H[1:(K+1),:])
+        println("H:", H)
+        println("U]:", U)
+        println("H[1:(K+1),:]:", H[1:(K+1),:])
+        println("log_q:", log_q)
+        println("q:", q) =#
+
         logLikelihood += log(copy(q[c[n]]))
         if c[n] == K+1
             K = K + 1
