@@ -57,6 +57,22 @@ function sample(
 
     N, dh = size(h)
 
+    p_1 = 0.1 #Probability of one partitition through special lottery
+    p_D = 0.1 #Probability of D partitiions through special lottery
+
+    r = Random.rand(rng)
+    if r<p_1
+        partition_local = [collect(1:N)]
+        l = log(p_1 + (1-p_1-p_D) * exp(MaxStableVI.logLikelihood(guide,observation,coordinate,partition_local,obsNum)))
+        Zygote.@ignore copy!(partition, partition_local)
+        return l
+    elseif r < p_1 + p_D
+        partition_local = [[x] for x in 1:N]
+        l = log(p_D + (1-p_1-p_D) * exp(MaxStableVI.logLikelihood(guide,observation,coordinate,partition_local,obsNum)))
+        Zygote.@ignore copy!(partition, partition_local)
+        return l
+    end
+
     c = Vector{Int32}(undef,N)
     
     logLikelihood = 0.0
@@ -90,7 +106,13 @@ function sample(
         end
         copy!(partition, partition_local)
     end
-  
+
+    if length(partition_local) == 1
+        logLikelihood = log(p_1 + (1-p_1-p_D) * exp(logLikelihood))
+    elseif length(partition_local) == N
+        logLikelihood = log(p_D + (1-p_1-p_D) * exp(logLikelihood))
+    end
+
     return logLikelihood # return assignment labels and permuted indices
 end
 
@@ -127,9 +149,11 @@ function logLikelihood(
 
     c = Vector{Int32}(undef,N)
 
-    for (index,value) in enumerate(partition)
-        for cust in value
-            c[cust] = index
+    Zygote.ignore() do 
+        for (index,value) in enumerate(partition)
+            for cust in value
+                c[cust] = index
+            end
         end
     end
     
