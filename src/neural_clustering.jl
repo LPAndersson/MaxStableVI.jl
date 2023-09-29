@@ -23,6 +23,7 @@ NeuralClustering(; h::Vector{Float32},  weights::Vector{Float32}, g::Flux.Chain)
     u::Matrix{Float32}
     g::Flux.Chain
     f::Flux.Chain
+    p::Vector{Float32}
 end
 
 NeuralClustering(;D::Integer, dh::Integer, dg::Integer) = 
@@ -30,7 +31,8 @@ NeuralClustering(
     (rand(Float32,(D,dh)).-convert(Float32,0.5))*convert(Float32,10.0),
     (rand(Float32,(D,dh)).-convert(Float32,0.5))*convert(Float32,10.0),
     Flux.Chain(Flux.Dense(dh,5,Flux.tanh_fast), Flux.Dense(5,dg)),
-    Flux.Chain(Flux.Dense(dg+dh,5,Flux.tanh_fast), Flux.Dense(5,1))
+    Flux.Chain(Flux.Dense(dg+dh,5,Flux.tanh_fast), Flux.Dense(5,1)),
+    [convert(Float32,-3.0),convert(Float32,-3.0)]
 )
 
 @functor NeuralClustering
@@ -57,8 +59,8 @@ function sample(
 
     N, dh = size(h)
 
-    p_1 = 0.1 #Probability of one partitition through special lottery
-    p_D = 0.1 #Probability of D partitiions through special lottery
+    p_1 = exp(guide.p[1])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of one partitition through special lottery
+    p_D = exp(guide.p[2])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of D partitiions through special lottery
 
     r = Random.rand(rng)
     if r<p_1
