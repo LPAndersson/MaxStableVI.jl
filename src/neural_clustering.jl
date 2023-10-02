@@ -60,19 +60,17 @@ function sample(
     N, dh = size(h)
 
     p_1 = exp(guide.p[1])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of one partitition through special lottery
-    p_D = exp(guide.p[2])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of D partitiions through special lottery
+    p_D = exp(guide.p[2])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of D partitions through special lottery
 
     r = Random.rand(rng)
-    if r<p_1
+    if r < p_1
         partition_local = [collect(1:N)]
-        l = log(p_1 + (1-p_1-p_D) * exp(MaxStableVI.logLikelihood(guide,observation,coordinate,partition_local,obsNum)))
         Zygote.@ignore copy!(partition, partition_local)
-        return l
+        return MaxStableVI.logLikelihood(guide,observation,coordinate,partition_local,obsNum)
     elseif r < p_1 + p_D
         partition_local = [[x] for x in 1:N]
-        l = log(p_D + (1-p_1-p_D) * exp(MaxStableVI.logLikelihood(guide,observation,coordinate,partition_local,obsNum)))
         Zygote.@ignore copy!(partition, partition_local)
-        return l
+        return MaxStableVI.logLikelihood(guide,observation,coordinate,partition_local,obsNum)
     end
 
     c = Vector{Int32}(undef,N)
@@ -80,7 +78,6 @@ function sample(
     logLikelihood = 0.0
 
     U = vec(sum(u[2:end,:],dims = 1))
-    #Zygote.@ignore H[1,:] = h[1,:]
     H = [h[1:1,:];zeros(Float32,N-1,dh)]
 
     G = g(H[1,:])
@@ -113,6 +110,8 @@ function sample(
         logLikelihood = log(p_1 + (1-p_1-p_D) * exp(logLikelihood))
     elseif length(partition_local) == N
         logLikelihood = log(p_D + (1-p_1-p_D) * exp(logLikelihood))
+    else
+        logLikelihood = log(1-p_1-p_D) + logLikelihood
     end
 
     return logLikelihood # return assignment labels and permuted indices
@@ -173,14 +172,6 @@ function logLikelihood(
 
         log_q = SliceMap.slicemap((x) -> f([G + g(x + h[n,:]) - g(x);U]), H[1:(K+1),:], dims = 2)
         q = Flux.softmax(vec(log_q))
-#=         println("G:", G)
-        println("h[n,:]:", h[n,:])
-        println("g:", H[1:(K+1),:])
-        println("H:", H)
-        println("U]:", U)
-        println("H[1:(K+1),:]:", H[1:(K+1),:])
-        println("log_q:", log_q)
-        println("q:", q) =#
 
         logLikelihood += log(copy(q[c[n]]))
         if c[n] == K+1
@@ -190,5 +181,16 @@ function logLikelihood(
         H = H .+ [zeros(Float32,c[n]-1,dh);h[n:n,:];zeros(Float32,N-c[n],dh)]
     end
     
+    p_1 = exp(guide.p[1])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of one partitition through special lottery
+    p_D = exp(guide.p[2])/(exp(guide.p[1])+exp(guide.p[2]) + 1) #Probability of D partitiions through special lottery
+
+    if length(partition) == 1
+        logLikelihood = log(p_1 + (1-p_1-p_D) * exp(logLikelihood))
+    elseif length(partition) == N
+        logLikelihood = log(p_D + (1-p_1-p_D) * exp(logLikelihood))
+    else
+        logLikelihood = log(1-p_1-p_D) + logLikelihood
+    end
+
     return logLikelihood
 end
