@@ -17,6 +17,9 @@ export SimpleClustering
 include("simple_clustering.jl")
 export NeuralClustering
 include("neural_clustering.jl")
+export MultinomialClustering
+include("multinomial_clustering.jl")
+
 
 #export NNGuide
 #include("nn_partition_process.jl")
