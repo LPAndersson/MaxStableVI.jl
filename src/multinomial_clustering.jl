@@ -81,5 +81,5 @@ function logLikelihood(
     
     h = guide.h
 
-    return log(Flux.softmax(h)[length(partition_local)])
+    return log(Flux.softmax(h)[length(partition)])
 end
