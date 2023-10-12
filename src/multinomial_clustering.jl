@@ -14,7 +14,7 @@ end
 
 MultinomialClustering(;D::Integer) = 
 MultinomialClustering(
-    rand(Float32,(D))
+    convert.(Float32,ones(D))
 )
 
 @functor MultinomialClustering
