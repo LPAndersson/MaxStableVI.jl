@@ -79,7 +79,7 @@ function logLikelihood(
     obsNum::Int64
     )
     
-    h = guide.H
+    h = guide.h
 
     return log(Flux.softmax(h)[length(partition_local)])
 end
