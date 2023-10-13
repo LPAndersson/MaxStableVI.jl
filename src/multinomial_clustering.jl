@@ -41,7 +41,7 @@ function sample(
 
     p = Flux.softmax(h)
     numOfTables = Random.rand(rng, Distributions.Categorical(p))
-    logLikelihood = log(p[numOfTables])
+    logLikelihood = log(p[numOfTables]) - log(length(Combinatorics.partitions(1:N,numOfTables)))
 
     Zygote.ignore() do 
         c = [collect(1:numOfTables); Distributions.wsample(1:numOfTables,ones(numOfTables),N-numOfTables)]
