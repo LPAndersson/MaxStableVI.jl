@@ -5,6 +5,7 @@ import StatsFuns
 import Statistics
 import Distributions
 import SliceMap
+import Combinatorics
 
 import Flux: @functor
 
@@ -80,6 +81,9 @@ function logLikelihood(
     )
     
     h = guide.h
+    n = length(h)
+    numOfTables = length(partition)
 
-    return log(Flux.softmax(h)[length(partition)])
+
+    return log(Flux.softmax(h)[length(partition)]) - log(length(Combinatorics.partitions(1:n,numOfTables)))
 end
