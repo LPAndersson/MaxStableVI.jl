@@ -22,10 +22,10 @@ function train!(rng::Random.AbstractRNG,
 
     (n, d) = size(observations)
         
-    modelParamHist = Vector{Vector{Float64}}(undef,0)
-    guideParamHist = Vector{Vector{Float64}}(undef,0)
+    modelHist = Vector{typeof(model)}(undef,epochs)
+    guideHist = Vector{typeof(hist)}(undef,epochs)
     
-    elboHist = Vector{Float64}(undef,0)  
+    elboHist = Vector{Float64}(undef,epochs)  
 
     guideSamples = [[[1]] for _ in 1:M]
 
@@ -102,10 +102,14 @@ function train!(rng::Random.AbstractRNG,
 
         end
 
-        push!(modelParamHist, getindex.(modelParams[:],1))
+        modelHist[epoch] = deepcopy(model)
+        guideHist[epoch] = deepcopy(guide)
+        elboHist[epoch] = elboEstimate
+
+#=         push!(modelParamHist, getindex.(modelParams[:],1))
         push!(guideParamHist, getindex.(guideParams[:],1))
         push!(elboHist, elboEstimate)
-
+ =#
         if printing 
             println("Epoch ", epoch,"/", epochs, " Elbo " , elboEstimate)
         end
@@ -113,8 +117,8 @@ function train!(rng::Random.AbstractRNG,
     end
 ≈
     return Dict([
-        ("model", modelParamHist),
-        ("guide", guideParamHist),
+        ("model", modelHist),
+        ("guide", guideHist),
         ("elbo", elboHist)
     ])
 end
