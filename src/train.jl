@@ -23,7 +23,7 @@ function train!(rng::Random.AbstractRNG,
     (n, d) = size(observations)
         
     modelHist = Vector{typeof(model)}(undef,epochs)
-    guideHist = Vector{typeof(hist)}(undef,epochs)
+    guideHist = Vector{typeof(guide)}(undef,epochs)
     
     elboHist = Vector{Float64}(undef,epochs)  
 
