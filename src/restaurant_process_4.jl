@@ -1,7 +1,7 @@
 import Random
 import Zygote
 
-import Flux: @functor
+import Flux
 
 mutable struct RestaurantProcess4 <: AbstractGuide
     delta::Vector{Float64}
@@ -11,7 +11,7 @@ end
 
 RestaurantProcess4(; delta::Float64, alpha::Float64, rho::Float64) = RestaurantProcess4([delta],[alpha],[rho])
 
-@functor RestaurantProcess4
+Flux.@layer RestaurantProcess4
 
 function clamp!(guide::RestaurantProcess4)
 

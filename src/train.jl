@@ -6,14 +6,27 @@ import StatsBase
 using StatsFuns: logsumexp
 using Statistics: mean
 
+# ---------------------------------------------------------------------------
+# Helpers for gradient-tree algebra (works with any Functors-compatible tree,
+# including nested Flux.Chain gradients).
+# ---------------------------------------------------------------------------
+
+# Scale every Array leaf in gradient tree g by scalar c.
+_scale_grad(c::Real, g) = Flux.fmap(x -> x isa AbstractArray ? c .* x : x, g)
+
+# Element-wise addition of two gradient trees with matching structure.
+_add_grads(a, b) = Flux.fmap((x, y) -> x isa AbstractArray ? x .+ y : x, a, b)
+
+# ---------------------------------------------------------------------------
+
 function train!(rng::Random.AbstractRNG,
     model::AbstractMaxStableModel,
     guide::AbstractGuide;
     data::Vector{Matrix{Float64}},
     epochs::Int64 = 10,
     M::Int64 = 1,
-    guideopt::Flux.Optimise.AbstractOptimiser,
-    modelopt::Flux.Optimise.AbstractOptimiser,
+    guideopt,
+    modelopt,
     printing::Bool = true
     )
 
@@ -21,105 +34,92 @@ function train!(rng::Random.AbstractRNG,
     coordinates = data[2]
 
     (n, d) = size(observations)
-        
-    modelHist = Vector{typeof(model)}(undef,epochs)
-    guideHist = Vector{typeof(guide)}(undef,epochs)
-    
-    elboHist = Vector{Float64}(undef,epochs)  
 
+    modelHist = Vector{typeof(model)}(undef, epochs)
+    guideHist = Vector{typeof(guide)}(undef, epochs)
+    elboHist  = Vector{Float64}(undef, epochs)
+
+    # One partition buffer per importance sample slot.
     guideSamples = [[[1]] for _ in 1:M]
 
-    guideValues = Vector{Float64}(undef, M)
-    guideGrads = Vector{Zygote.Grads}(undef, M)
-
-    pqgradLogq = Array{Zygote.Grads}(undef, M)
-    pqgradLogp = Array{Zygote.Grads}(undef, M)
-    
-    modelValues = Vector{Float64}(undef, M)
-    modelGrads = Vector{Zygote.Grads}(undef, M)
-        
-    guideParams = Flux.params(guide)
-    modelParams = Flux.params(model)
-
-    #c = 0
+    # Set up explicit optimizer states (Flux 0.14+ / Optimisers.jl API).
+    guide_state = Flux.setup(guideopt, guide)
+    model_state = Flux.setup(modelopt, model)
 
     batchOrder = StatsBase.sample(rng, 1:n, n, replace = false)
-  
+
     for epoch in 1:epochs
 
         elboEstimate = 0.0
 
         for obsIdx in batchOrder
-            #Threads.@threads 
+
+            guideValues   = Vector{Float64}(undef, M)
+            modelValues   = Vector{Float64}(undef, M)
+            guide_raw_gs  = Vector{Any}(undef, M)   # raw ∇_φ log q
+            pqgradLogq    = Vector{Any}(undef, M)   # w_m · ∇_φ log q_m
+            pqgradLogp    = Vector{Any}(undef, M)   # w_m · ∇_θ log p_m
+
             for m in 1:M
-    
-                (guideValues[m], guideGrads[m]) = 
-                    Zygote.withgradient( 
-                        () -> sample(
-                                guide, 
-                                observations[obsIdx,:],
-                                coordinates,
-                                guideSamples[m],
-                                obsIdx
-                                ), 
-                        guideParams
-                        )
+                # --- guide gradient -----------------------------------------
+                # sample() writes the drawn partition into guideSamples[m]
+                # as a side-effect inside Zygote.ignore(), then returns log q.
+                guideValues[m], gs_g = Flux.withgradient(guide) do g
+                    sample(g, observations[obsIdx,:], coordinates,
+                           guideSamples[m], obsIdx)
+                end
+                guide_raw_gs[m] = gs_g[1]
 
-                (modelValues[m], modelGrads[m]) = 
-                    Zygote.withgradient( 
-                        () -> condLogLikelihood(
-                            model, 
-                            observations[obsIdx,:], 
-                            coordinates, 
-                            guideSamples[m]
-                            ), 
-                        modelParams
-                        )
+                # --- model gradient (partition fixed from guide sample above) -
+                modelValues[m], gs_m = Flux.withgradient(model) do mo
+                    condLogLikelihood(mo, observations[obsIdx,:],
+                                      coordinates, guideSamples[m])
+                end
 
-                pqgradLogq[m] = exp(modelValues[m] - guideValues[m]) .* guideGrads[m]
-                pqgradLogp[m] = exp(modelValues[m] - guideValues[m]) .* modelGrads[m]
-        
+                w = exp(modelValues[m] - guideValues[m])
+                pqgradLogq[m] = _scale_grad(w, gs_g[1])
+                pqgradLogp[m] = _scale_grad(w, gs_m[1])
             end
-    
-            guideGradSum = reduce(.+, guideGrads)
 
-            #c = elboEstimate
-        
             log_pqsum = logsumexp(modelValues .- guideValues)
-                
-            modelStep =  exp(-log_pqsum) .* reduce(.+, pqgradLogp)
-            guideStep =  -exp(-log_pqsum) .* reduce(.+, pqgradLogq) .+ log_pqsum .* guideGradSum
 
-            Flux.update!(modelopt, modelParams, (-1).* modelStep)
-            Flux.update!(guideopt, guideParams, (-1).* guideStep)   
-            
+            guide_grad_sum = reduce(_add_grads, guide_raw_gs)
+
+            # Importance-weighted gradient directions (pre-negation).
+            model_update = _scale_grad(
+                exp(-log_pqsum),
+                reduce(_add_grads, pqgradLogp)
+            )
+            guide_update = _add_grads(
+                _scale_grad(-exp(-log_pqsum), reduce(_add_grads, pqgradLogq)),
+                _scale_grad(log_pqsum, guide_grad_sum)
+            )
+
+            # Flux.update! performs param -= lr * grad (gradient descent).
+            # We want gradient *ascent* on the ELBO, so negate the updates.
+            Flux.update!(model_state, model, _scale_grad(-1.0, model_update))
+            Flux.update!(guide_state, guide, _scale_grad(-1.0, guide_update))
+
             clamp!(model)
             clamp!(guide)
 
             elboEstimate += log_pqsum - log(M)
-
-            #c = 0.99 * c + (1-0.99) * log_pqsum
-
         end
 
         modelHist[epoch] = deepcopy(model)
         guideHist[epoch] = deepcopy(guide)
-        elboHist[epoch] = elboEstimate
+        elboHist[epoch]  = elboEstimate
 
-#=         push!(modelParamHist, getindex.(modelParams[:],1))
-        push!(guideParamHist, getindex.(guideParams[:],1))
-        push!(elboHist, elboEstimate)
- =#
-        if printing 
-            println("Epoch ", epoch,"/", epochs, " Elbo " , elboEstimate)
+        if printing
+            println("Epoch ", epoch, "/", epochs, " Elbo ", elboEstimate)
         end
-  
+
     end
-≈
+
     return Dict([
         ("model", modelHist),
         ("guide", guideHist),
-        ("elbo", elboHist)
+        ("elbo",  elboHist)
     ])
 end
 
@@ -128,13 +128,13 @@ train!(model::AbstractMaxStableModel,
     data::Vector{Matrix{Float64}},
     epochs::Int64 = 10,
     M::Int64 = 1,
-    guideopt::Flux.Optimise.AbstractOptimiser,
-    modelopt::Flux.Optimise.AbstractOptimiser,
+    guideopt,
+    modelopt,
     printing::Bool = true
     ) = train!(
         Random.default_rng(),
         model,
-        guide; 
+        guide;
         data,
         epochs,
         M,
@@ -142,5 +142,3 @@ train!(model::AbstractMaxStableModel,
         modelopt,
         printing
     )
-
-  

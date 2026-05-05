@@ -4,7 +4,7 @@ import StatsFuns
 import Statistics
 import Distributions
 
-import Flux: @functor
+import Flux
 
 mutable struct MeanField <: AbstractGuide
     #customers are in rows and tables in columns
@@ -13,7 +13,7 @@ end
 
 MeanField(; weights::Matrix{Float64}) = MeanField(weights)
 
-@functor MeanField
+Flux.@layer MeanField
 
 function clamp!(guide::MeanField)
 

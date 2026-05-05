@@ -6,7 +6,7 @@ import Distributions: MvNormal
 import StatsFuns
 
 import InvertedIndices: Not
-import Flux: @functor
+import Flux
 
 include("mvtGaussianCdf.jl")
 
@@ -17,7 +17,7 @@ end
 
 BrownResnickModel(; lambda::Float64, nu::Float64) = BrownResnickModel([lambda],[nu])
 
-@functor BrownResnickModel
+Flux.@layer BrownResnickModel
 
 function clamp!(model::BrownResnickModel)
   model.lambda[1] = clamp(model.lambda[1],0.01, Inf )

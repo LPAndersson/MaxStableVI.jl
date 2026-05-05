@@ -7,7 +7,7 @@ import Distributions
 import SliceMap
 import Combinatorics
 
-import Flux: @functor
+import Flux
 
  mutable struct MultinomialClustering <: AbstractGuide
     h::Vector{Float32}
@@ -18,7 +18,7 @@ MultinomialClustering(
     convert.(Float32,ones(D))
 )
 
-@functor MultinomialClustering
+Flux.@layer MultinomialClustering
 
 function clamp!(guide::MultinomialClustering)
 

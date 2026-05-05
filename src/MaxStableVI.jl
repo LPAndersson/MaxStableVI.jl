@@ -13,8 +13,9 @@ export RestaurantProcess4
 include("restaurant_process_4.jl")
 export MeanField
 include("mean_field.jl")
-export SimpleClustering
-include("simple_clustering.jl")
+# SimpleClustering is incomplete/broken — disabled until ported
+#export SimpleClustering
+#include("simple_clustering.jl")
 export NeuralClustering
 include("neural_clustering.jl")
 export MultinomialClustering

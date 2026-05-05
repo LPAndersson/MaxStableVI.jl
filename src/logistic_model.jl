@@ -2,7 +2,7 @@ import Optim
 import Combinatorics: powerset
 import IterTools
 
-import Flux: @functor
+import Flux
 import StatsFuns: logistic
 
 # import Base.@kwdef
@@ -14,7 +14,7 @@ mutable struct LogisticModel <: AbstractMaxStableModel
     theta::Vector{Float64}
 end
 
-@functor LogisticModel
+Flux.@layer LogisticModel
 LogisticModel(; theta::Float64) = LogisticModel([theta])
 
 function clamp!(model::LogisticModel)

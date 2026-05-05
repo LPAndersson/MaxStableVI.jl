@@ -6,7 +6,7 @@ import Statistics
 import Distributions
 import SliceMap
 
-import Flux: @functor
+import Flux
 
 #= mutable struct NeuralClustering <: AbstractGuide
     #customers are in rows and tables in columns
@@ -35,7 +35,7 @@ NeuralClustering(
     [convert(Float32,-3.0),convert(Float32,-3.0)]
 )
 
-@functor NeuralClustering
+Flux.@layer NeuralClustering
 
 function clamp!(guide::NeuralClustering)
 
